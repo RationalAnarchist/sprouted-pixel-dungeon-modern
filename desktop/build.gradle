@@ -15,6 +15,8 @@ processResources {
 def osName = System.getProperty('os.name').toLowerCase(Locale.ROOT)
 
 tasks.register('debug', JavaExec) {
+    group = 'application'
+    description = 'Runs the game on desktop in debug mode'
     classpath = sourceSets.main.runtimeClasspath
     ignoreExitValue = true
 
