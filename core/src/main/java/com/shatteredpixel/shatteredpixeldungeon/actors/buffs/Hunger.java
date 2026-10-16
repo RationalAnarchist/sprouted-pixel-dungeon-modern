@@ -37,8 +37,8 @@ import com.watabou.utils.Bundle;
 
 public class Hunger extends Buff implements Hero.Doom {
 
-	public static final float HUNGRY	= 450f;
-	public static final float STARVING	= 675f;
+	public static final float HUNGRY	= 600f;
+	public static final float STARVING	= 900f;
 
 	private float level;
 	private float partialDamage;

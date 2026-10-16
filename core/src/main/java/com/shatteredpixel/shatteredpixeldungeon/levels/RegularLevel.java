@@ -127,9 +127,9 @@ public abstract class RegularLevel extends Level {
 		initRooms.add ( roomEntrance = EntranceRoom.createEntrance());
 		initRooms.add( roomExit = ExitRoom.createExit());
 
-		// Verdant: Sprouted-style massive floors (~1.5x standard rooms)
+		// Verdant: Sprouted-style massive floors (~2.5x standard rooms)
 		int standards = standardRooms(feeling == Feeling.LARGE);
-		standards = (int)Math.ceil(standards * 1.5f);
+		standards = (int)Math.ceil(standards * 2.5f);
 		if (feeling == Feeling.LARGE){
 			standards = (int)Math.ceil(standards * 1.33f);
 		}
@@ -212,7 +212,7 @@ public abstract class RegularLevel extends Level {
 		}
 
 		int mobs = 3 + Dungeon.depth % 5 + Random.Int(3);
-		mobs = (int)Math.ceil(mobs * 1.35f);
+		mobs = (int)Math.ceil(mobs * 1.85f);
 		if (feeling == Feeling.LARGE){
 			mobs = (int)Math.ceil(mobs * 1.33f);
 		}
@@ -221,8 +221,8 @@ public abstract class RegularLevel extends Level {
 	
 	@Override
 	protected void createMobs() {
-		//on floor 1, 12 pre-set mobs are created across the massive floor so the player can explore and level up.
-		int mobsToSpawn = Dungeon.depth == 1 ? 12 : mobLimit();
+		//on floor 1, 16 pre-set mobs are created across the massive floor so the player can explore and level up.
+		int mobsToSpawn = Dungeon.depth == 1 ? 16 : mobLimit();
 
 		ArrayList<Room> stdRooms = new ArrayList<>();
 		for (Room room : rooms) {
@@ -379,11 +379,11 @@ public abstract class RegularLevel extends Level {
 	@Override
 	protected void createItems() {
 		
-		// Verdant: Drops 5/6/7 items on massive floors
-		int nItems = 5 + Random.chances(new float[]{5, 3, 2});
+		// Verdant: Drops 7/8/9 items on massive floors
+		int nItems = 7 + Random.chances(new float[]{4, 4, 2});
 
 		if (feeling == Feeling.LARGE){
-			nItems += 2;
+			nItems += 3;
 		}
 
 		// Floor 1: Guaranteed Dew Vial spawn!

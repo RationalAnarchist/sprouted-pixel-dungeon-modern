@@ -61,9 +61,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.Stasis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.DirectableAlly;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Surprise;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Wound;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.Dewdrop;
+import com.shatteredpixel.shatteredpixeldungeon.items.DewVial;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArmband;
@@ -1034,6 +1037,29 @@ public abstract class Mob extends Char {
 			}
 
 			rollToDropLoot();
+
+			// Verdant: Draw Out Dew specialization
+			// Defeated enemies yield dewdrops directly to fuel the 90-dew targeted upgrades
+			if (Dungeon.hero != null && !(this instanceof DewGuardian)) {
+				DewVial vial = Dungeon.hero.belongings.getItem(DewVial.class);
+				if (vial != null && vial.mode == DewVial.Mode.DRAW_OUT) {
+					int dewAmount = 0;
+					if (properties.contains(Property.BOSS) || properties.contains(Property.MINIBOSS)) {
+						dewAmount = Random.IntRange(8, 15);
+					} else if (buff(ChampionEnemy.class) != null) {
+						dewAmount = Random.IntRange(3, 6);
+					} else if (Random.Float() < 0.65f) {
+						dewAmount = Random.IntRange(1, 3);
+					}
+
+					if (dewAmount > 0) {
+						Dungeon.level.drop(new Dewdrop().quantity(dewAmount), pos).sprite.drop();
+						if (Dungeon.level.heroFOV[pos]) {
+							CellEmitter.center(pos).burst(Speck.factory(Speck.HEALING), 3);
+						}
+					}
+				}
+			}
 
 			if (cause == Dungeon.hero || cause instanceof Weapon || cause instanceof Weapon.Enchantment){
 				if (Dungeon.hero.hasTalent(Talent.LETHAL_MOMENTUM)
