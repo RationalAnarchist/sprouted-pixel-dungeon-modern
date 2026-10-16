@@ -150,15 +150,11 @@ public class HighGrass {
 					}
 				}
 				
-				// Watered tiles guarantee dew (plus 25% bonus extra drop), ensuring net-positive farming
+				// Verdant: Watered tiles do NOT drop dew, completely preventing slow infinite farming loops.
+				// Players use the Dew Trial to bless their equipment instead.
 				boolean wasWatered = wateredTiles.remove(pos);
-				if (wasWatered) {
-					level.drop(new Dewdrop(), pos).sprite.drop();
-					if (Random.Float() < 0.25f) {
-						level.drop(new Dewdrop(), pos).sprite.drop();
-					}
-				} else {
-					// Verdant boosted dew drop rate: ~40% base up to ~55% with naturalism
+				if (!wasWatered) {
+					// Verdant boosted dew drop rate for natural grass: ~40% base up to ~55% with naturalism
 					lootChance = 1 / (2.5f - naturalismLevel * 0.25f);
 					if (Random.Float() < lootChance) {
 						level.drop(new Dewdrop(), pos).sprite.drop();

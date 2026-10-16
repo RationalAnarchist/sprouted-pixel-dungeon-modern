@@ -48,6 +48,8 @@ import com.watabou.utils.GameMath;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DewGuardian;
+
 import java.util.ArrayList;
 
 public class DewVial extends Waterskin {
@@ -61,6 +63,7 @@ public class DewVial extends Waterskin {
 	}
 
 	public Mode mode = Mode.NONE;
+	public int trialCount = 0;
 
 	public static final String AC_DRINK  = "DRINK";
 	public static final String AC_SIP    = "SIP";
@@ -73,6 +76,7 @@ public class DewVial extends Waterskin {
 	private static final float TIME_TO_WATER  = 1f;
 
 	private static final String MODE = "vial_mode";
+	private static final String TRIAL_COUNT = "trial_count";
 
 	{
 		image = ItemSpriteSheet.VIAL;
@@ -84,6 +88,7 @@ public class DewVial extends Waterskin {
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( MODE, mode.name() );
+		bundle.put( TRIAL_COUNT, trialCount );
 	}
 
 	@Override
@@ -96,6 +101,7 @@ public class DewVial extends Waterskin {
 				mode = Mode.NONE;
 			}
 		}
+		trialCount = bundle.getInt( TRIAL_COUNT );
 	}
 
 	@Override
@@ -311,6 +317,12 @@ public class DewVial extends Waterskin {
 				hero.busy();
 				hero.sprite.operate(hero.pos);
 				blessEntirePack(hero);
+
+				// Summon escalating Dew Guardian trial
+				trialCount++;
+				DewGuardian.spawnAt(hero.pos, trialCount);
+				GLog.n( Messages.get(DewVial.class, "trial_summon") );
+
 				updateQuickslot();
 			} else {
 				// Draw Out Dew (or pre-choice): targeted single-item upgrade and uncurse
