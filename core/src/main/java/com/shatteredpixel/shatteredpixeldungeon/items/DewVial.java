@@ -65,11 +65,13 @@ public class DewVial extends Waterskin {
 	public Mode mode = Mode.NONE;
 	public int trialCount = 0;
 
-	public static final String AC_DRINK  = "DRINK";
-	public static final String AC_SIP    = "SIP";
-	public static final String AC_SPLASH = "SPLASH";
-	public static final String AC_BLESS  = "BLESS";
-	public static final String AC_WATER  = "WATER";
+	public static final String AC_DRINK      = "DRINK";
+	public static final String AC_SIP        = "SIP";
+	public static final String AC_SPLASH     = "SPLASH";
+	public static final String AC_BLESS      = "BLESS";
+	public static final String AC_TRIAL      = "TRIAL";
+	public static final String AC_WATER      = "WATER";
+	public static final String AC_GROW_GRASS = "GROW_GRASS";
 
 	private static final float TIME_TO_DRINK  = 1f;
 	private static final float TIME_TO_SPLASH = 1f;
@@ -118,15 +120,30 @@ public class DewVial extends Waterskin {
 			actions.add( AC_SPLASH );
 		}
 
-		if (canBless()) {
+		if (mode == Mode.WATER) {
+			actions.add( AC_TRIAL );
+			actions.add( AC_GROW_GRASS );
+		} else {
 			actions.add( AC_BLESS );
 		}
 
-		if (canWater()) {
-			actions.add( AC_WATER );
-		}
-
 		return actions;
+	}
+
+	@Override
+	public String actionName(String action, Hero hero) {
+		if (action.equals(AC_TRIAL)) {
+			return Messages.get(DewVial.class, "ac_trial");
+		} else if (action.equals(AC_GROW_GRASS) || action.equals(AC_WATER)) {
+			return Messages.get(DewVial.class, "ac_grow_grass");
+		} else if (action.equals(AC_BLESS)) {
+			if (mode == Mode.DRAW_OUT) {
+				return Messages.get(DewVial.class, "ac_bless_item");
+			} else {
+				return Messages.get(DewVial.class, "ac_bless");
+			}
+		}
+		return super.actionName(action, hero);
 	}
 
 	public boolean canBless() {
@@ -263,10 +280,31 @@ public class DewVial extends Waterskin {
 			GLog.p( Messages.get(DewVial.class, "splash_msg") );
 			updateQuickslot();
 
-		} else if (action.equals( AC_WATER )) {
+		} else if (action.equals( AC_TRIAL ) || (action.equals( AC_BLESS ) && mode == Mode.WATER)) {
+
+			if (volume < 50) {
+				GLog.w( Messages.get(DewVial.class, "trial_need_dew", 50, volume) );
+				return;
+			}
+
+			// Water with Dew: Cleanses curses from entire pack and rolls upgrade chance
+			volume -= 50;
+			hero.spend(1f);
+			hero.busy();
+			hero.sprite.operate(hero.pos);
+			blessEntirePack(hero);
+
+			// Summon escalating Dew Guardian trial
+			trialCount++;
+			DewGuardian.spawnAt(hero.pos, trialCount);
+			GLog.n( Messages.get(DewVial.class, "trial_summon") );
+
+			updateQuickslot();
+
+		} else if (action.equals( AC_GROW_GRASS ) || action.equals( AC_WATER )) {
 
 			if (volume < 2) {
-				GLog.w( Messages.get(DewVial.class, "not_enough_dew") );
+				GLog.w( Messages.get(DewVial.class, "grow_need_dew", 2, volume) );
 				return;
 			}
 
@@ -305,53 +343,37 @@ public class DewVial extends Waterskin {
 
 		} else if (action.equals( AC_BLESS )) {
 
-			if (!canBless()) {
-				GLog.w( Messages.get(DewVial.class, "not_enough_dew") );
+			int cost = (mode == Mode.DRAW_OUT) ? 90 : 100;
+			if (volume < cost) {
+				GLog.w( Messages.get(DewVial.class, "bless_need_dew", cost, volume) );
 				return;
 			}
 
-			if (mode == Mode.WATER) {
-				// Water with Dew: Cleanses curses from entire pack and rolls upgrade chance
-				volume -= 50;
-				hero.spend(1f);
-				hero.busy();
-				hero.sprite.operate(hero.pos);
-				blessEntirePack(hero);
+			// Draw Out Dew (or pre-choice): targeted single-item upgrade and uncurse
+			GameScene.selectItem(new WndBag.ItemSelector() {
+				@Override
+				public String textPrompt() {
+					return Messages.get(DewVial.class, "prompt_bless");
+				}
 
-				// Summon escalating Dew Guardian trial
-				trialCount++;
-				DewGuardian.spawnAt(hero.pos, trialCount);
-				GLog.n( Messages.get(DewVial.class, "trial_summon") );
+				@Override
+				public boolean itemSelectable(Item item) {
+					if (!item.isUpgradable()) return false;
+					return (item instanceof Weapon || item instanceof Armor || item instanceof Wand || item instanceof Ring);
+				}
 
-				updateQuickslot();
-			} else {
-				// Draw Out Dew (or pre-choice): targeted single-item upgrade and uncurse
-				GameScene.selectItem(new WndBag.ItemSelector() {
-					@Override
-					public String textPrompt() {
-						return Messages.get(DewVial.class, "prompt_bless");
+				@Override
+				public void onSelect(Item item) {
+					if (item != null) {
+						volume -= cost;
+						hero.spend(1f);
+						hero.busy();
+						hero.sprite.operate(hero.pos);
+						blessSingleItem(hero, item);
+						updateQuickslot();
 					}
-
-					@Override
-					public boolean itemSelectable(Item item) {
-						if (!item.isUpgradable()) return false;
-						return (item instanceof Weapon || item instanceof Armor || item instanceof Wand || item instanceof Ring);
-					}
-
-					@Override
-					public void onSelect(Item item) {
-						if (item != null) {
-							int cost = (mode == Mode.DRAW_OUT) ? 90 : 100;
-							volume -= cost;
-							hero.spend(1f);
-							hero.busy();
-							hero.sprite.operate(hero.pos);
-							blessSingleItem(hero, item);
-							updateQuickslot();
-						}
-					}
-				});
-			}
+				}
+			});
 
 		} else {
 			super.execute( hero, action );
