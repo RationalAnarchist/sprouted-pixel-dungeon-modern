@@ -17,13 +17,12 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.quest;
 
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public class Toadstool extends Item {
 
 	{
-		image = ItemSpriteSheet.SEED_ROTBERRY;
+		image = ItemSpriteSheet.TOADSTOOL;
 		unique = true;
 	}
 
@@ -35,10 +34,5 @@ public class Toadstool extends Item {
 	@Override
 	public boolean isIdentified() {
 		return true;
-	}
-
-	@Override
-	public ItemSprite.Glowing glowing() {
-		return new ItemSprite.Glowing(0x44AA33, 2.5f);
 	}
 }

@@ -759,6 +759,7 @@ public class ItemSpriteSheet {
 	}
 
 	private static final int QUEST  =                                       xy(1, 30);  //16 slots
+	public static final int TOADSTOOL = QUEST+0;
 	public static final int DUST    = QUEST+1;
 	public static final int CANDLE  = QUEST+2;
 	public static final int EMBER   = QUEST+3;
@@ -770,6 +771,7 @@ public class ItemSpriteSheet {
 	public static final int ESCAPE  = QUEST+9;
 	public static final int STATUE  = QUEST+10;
 	static{
+		assignItemRect(TOADSTOOL, 14, 14);
 		assignItemRect(DUST,    12, 11);
 		assignItemRect(CANDLE,  12, 12);
 		assignItemRect(EMBER,   12, 11);
