@@ -67,19 +67,20 @@ public class DewGuardian extends Mob {
 		this.trialTier = Math.max(1, tier);
 
 		int depth = Dungeon.scalingDepth();
+		int t = Math.max(0, trialTier - 1);
 
-		// Starts gentle at Marsupial Rat level (trial 1: ~14-16 HP) and scales up with each trial & depth
-		HT = 12 + ((trialTier - 1) * 14) + (depth * 2);
+		// Starts gentle at Marsupial Rat level (trial 1: 8-10 HP) and scales gently with each trial (~+3 HP) & depth
+		HT = 8 + (t * 3) + depth;
 		HP = HT;
 
 		// Defense skill starts at 2 (same as Marsupial Rat)
-		defenseSkill = 2 + (trialTier - 1) + depth / 3;
+		defenseSkill = 2 + (t / 2) + (depth / 4);
 
-		EXP = 2 + (trialTier * 2) + depth;
+		EXP = 1 + (t / 2) + (depth / 2);
 
-		// Champion buffs begin from trial 2 onwards (0% on trial 1)
-		if (trialTier >= 2 && buff(ChampionEnemy.class) == null) {
-			float champChance = (trialTier >= 4) ? 1f : (trialTier == 3 ? 0.5f : 0.25f);
+		// Champion buffs are disabled for the first 5 trials so early un-upgraded runs aren't spiked by RNG
+		if (trialTier > 5 && buff(ChampionEnemy.class) == null) {
+			float champChance = (trialTier >= 20) ? 0.8f : (trialTier >= 15 ? 0.6f : (trialTier >= 10 ? 0.4f : 0.2f));
 			if (Random.Float() < champChance) {
 				Class<? extends ChampionEnemy> buffCls;
 				switch (Random.Int(6)) {
@@ -98,33 +99,36 @@ public class DewGuardian extends Mob {
 	@Override
 	public int attackSkill(Char target) {
 		int depth = Dungeon.scalingDepth();
-		// Starts at 8 (same as Marsupial Rat) and increases with tier & depth
-		return 8 + ((trialTier - 1) * 2) + (depth / 2);
+		int t = Math.max(0, trialTier - 1);
+		// Starts at 8 (same as Marsupial Rat) and increases smoothly with tier & depth
+		return 8 + (t * 2 / 3) + (depth / 3);
 	}
 
 	@Override
 	public int damageRoll() {
 		int depth = Dungeon.scalingDepth();
-		// Starts at 1-4/5 (same as Marsupial Rat) and scales up
-		int min = 1 + (trialTier - 1) + (depth / 3);
-		int max = 4 + ((trialTier - 1) * 2) + (depth / 2);
+		int t = Math.max(0, trialTier - 1);
+		// Starts at 1-4 (same as Marsupial Rat) and scales gradually across 20+ trials
+		int min = 1 + (t / 5) + (depth / 6);
+		int max = 4 + (t / 2) + (depth / 4);
 		return Random.NormalIntRange(min, max);
 	}
 
 	@Override
 	public int drRoll() {
 		int depth = Dungeon.scalingDepth();
-		int minDR = Math.max(0, (trialTier - 1) / 2);
-		int maxDR = (trialTier <= 1) ? 1 : ((trialTier - 1) + (depth / 4));
+		int t = Math.max(0, trialTier - 1);
+		int minDR = Math.max(0, (t - 4) / 4);
+		int maxDR = 1 + (t / 3) + (depth / 6);
 		return super.drRoll() + Random.NormalIntRange(minDR, maxDR);
 	}
 
 	@Override
 	public float speed() {
 		float s = super.speed();
-		if (trialTier >= 5) {
+		if (trialTier >= 20) {
 			return s * 1.2f;
-		} else if (trialTier >= 3) {
+		} else if (trialTier >= 12) {
 			return s * 1.1f;
 		}
 		return s;
@@ -170,8 +174,9 @@ public class DewGuardian extends Mob {
 		super.restoreFromBundle(bundle);
 		trialTier = bundle.getInt(TRIAL_TIER);
 		int depth = Dungeon.scalingDepth();
-		defenseSkill = 2 + (trialTier - 1) + depth / 3;
-		EXP = 2 + (trialTier * 2) + depth;
+		int t = Math.max(0, trialTier - 1);
+		defenseSkill = 2 + (t / 2) + (depth / 4);
+		EXP = 1 + (t / 2) + (depth / 2);
 	}
 
 	public static DewGuardian spawnAt(int pos, int trialTier) {
