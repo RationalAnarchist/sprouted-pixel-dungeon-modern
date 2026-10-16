@@ -108,7 +108,7 @@ public class DewVial extends Waterskin {
 			actions.add( AC_SIP );
 		}
 
-		if (vol >= 30) {
+		if (vol >= 20) {
 			actions.add( AC_SPLASH );
 		}
 
@@ -237,14 +237,15 @@ public class DewVial extends Waterskin {
 
 		} else if (action.equals( AC_SPLASH )) {
 
-			if (volume < 30) {
+			if (volume < 20) {
 				GLog.w( Messages.get(DewVial.class, "not_enough_dew") );
 				return;
 			}
 
-			volume -= 10;
+			volume -= 20;
 			hero.spend(TIME_TO_SPLASH);
 			hero.busy();
+			hero.sprite.operate(hero.pos);
 
 			Sample.INSTANCE.play(Assets.Sounds.WATER);
 			CellEmitter.get(hero.pos).burst(LeafParticle.LEVEL_SPECIFIC, 10);
@@ -266,6 +267,7 @@ public class DewVial extends Waterskin {
 			volume -= 2;
 			hero.spend(TIME_TO_WATER);
 			hero.busy();
+			hero.sprite.operate(hero.pos);
 
 			Sample.INSTANCE.play(Assets.Sounds.WATER);
 			int wateredCount = 0;
@@ -305,6 +307,9 @@ public class DewVial extends Waterskin {
 			if (mode == Mode.WATER) {
 				// Water with Dew: Cleanses curses from entire pack and rolls upgrade chance
 				volume -= 50;
+				hero.spend(1f);
+				hero.busy();
+				hero.sprite.operate(hero.pos);
 				blessEntirePack(hero);
 				updateQuickslot();
 			} else {
@@ -326,6 +331,9 @@ public class DewVial extends Waterskin {
 						if (item != null) {
 							int cost = (mode == Mode.DRAW_OUT) ? 90 : 100;
 							volume -= cost;
+							hero.spend(1f);
+							hero.busy();
+							hero.sprite.operate(hero.pos);
 							blessSingleItem(hero, item);
 							updateQuickslot();
 						}
