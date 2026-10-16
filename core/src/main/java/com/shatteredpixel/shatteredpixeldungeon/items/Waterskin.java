@@ -54,7 +54,7 @@ public class Waterskin extends Item {
 		unique = true;
 	}
 
-	private int volume = 0;
+	protected int volume = 0;
 
 	private static final String VOLUME	= "volume";
 

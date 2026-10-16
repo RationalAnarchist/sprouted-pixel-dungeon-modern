@@ -60,7 +60,8 @@ public abstract class RegularPainter extends Painter {
 	private int grassSmoothness;
 	
 	public RegularPainter setGrass(float fill, int smoothness){
-		grassFill = fill;
+		// Verdant: Enhance base vegetation density throughout the dungeon
+		grassFill = Math.min(0.95f, fill + 0.25f);
 		grassSmoothness = smoothness;
 		return this;
 	}

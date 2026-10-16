@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
+import com.shatteredpixel.shatteredpixeldungeon.items.DewVial;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -126,10 +127,11 @@ public abstract class RegularLevel extends Level {
 		initRooms.add ( roomEntrance = EntranceRoom.createEntrance());
 		initRooms.add( roomExit = ExitRoom.createExit());
 
-		//force max standard rooms and multiple by 1.5x for large levels
+		// Verdant: Sprouted-style massive floors (~1.5x standard rooms)
 		int standards = standardRooms(feeling == Feeling.LARGE);
+		standards = (int)Math.ceil(standards * 1.5f);
 		if (feeling == Feeling.LARGE){
-			standards = (int)Math.ceil(standards * 1.5f);
+			standards = (int)Math.ceil(standards * 1.33f);
 		}
 		for (int i = 0; i < standards; i++) {
 			StandardRoom s;
@@ -210,6 +212,7 @@ public abstract class RegularLevel extends Level {
 		}
 
 		int mobs = 3 + Dungeon.depth % 5 + Random.Int(3);
+		mobs = (int)Math.ceil(mobs * 1.35f);
 		if (feeling == Feeling.LARGE){
 			mobs = (int)Math.ceil(mobs * 1.33f);
 		}
@@ -218,8 +221,8 @@ public abstract class RegularLevel extends Level {
 	
 	@Override
 	protected void createMobs() {
-		//on floor 1, 8 pre-set mobs are created so the player can get level 2.
-		int mobsToSpawn = Dungeon.depth == 1 ? 8 : mobLimit();
+		//on floor 1, 12 pre-set mobs are created across the massive floor so the player can explore and level up.
+		int mobsToSpawn = Dungeon.depth == 1 ? 12 : mobLimit();
 
 		ArrayList<Room> stdRooms = new ArrayList<>();
 		for (Room room : rooms) {
@@ -376,11 +379,21 @@ public abstract class RegularLevel extends Level {
 	@Override
 	protected void createItems() {
 		
-		// drops 3/4/5 items 60%/30%/10% of the time
-		int nItems = 3 + Random.chances(new float[]{6, 3, 1});
+		// Verdant: Drops 5/6/7 items on massive floors
+		int nItems = 5 + Random.chances(new float[]{5, 3, 2});
 
 		if (feeling == Feeling.LARGE){
 			nItems += 2;
+		}
+
+		// Floor 1: Guaranteed Dew Vial spawn!
+		if (Dungeon.depth == 1) {
+			int vialCell = randomDropCell();
+			if (map[vialCell] == Terrain.HIGH_GRASS || map[vialCell] == Terrain.FURROWED_GRASS) {
+				map[vialCell] = Terrain.GRASS;
+				losBlocking[vialCell] = false;
+			}
+			drop(new DewVial(), vialCell);
 		}
 		
 		for (int i=0; i < nItems; i++) {

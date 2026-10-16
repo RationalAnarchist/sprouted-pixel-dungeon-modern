@@ -48,6 +48,12 @@ import com.watabou.utils.Random;
 
 public class HighGrass {
 	
+	public static java.util.HashSet<Integer> wateredTiles = new java.util.HashSet<>();
+
+	public static void markWateredTile( int pos ) {
+		wateredTiles.add( pos );
+	}
+	
 	//prevents items dropped from grass, from trampling that same grass.
 	//yes this is a bit ugly, oh well.
 	private static boolean freezeTrample = false;
@@ -144,16 +150,19 @@ public class HighGrass {
 					}
 				}
 				
-				// Dew, scales from 1/6 to 1/4
-				lootChance = 1/(6f -naturalismLevel/2f);
-
-				//grassy levels spawn half as much dew
-				if (Dungeon.level != null && Dungeon.level.feeling == Level.Feeling.GRASS){
-					lootChance /= 2;
-				}
-
-				if (Random.Float() < lootChance) {
+				// Watered tiles guarantee dew (plus 25% bonus extra drop), ensuring net-positive farming
+				boolean wasWatered = wateredTiles.remove(pos);
+				if (wasWatered) {
 					level.drop(new Dewdrop(), pos).sprite.drop();
+					if (Random.Float() < 0.25f) {
+						level.drop(new Dewdrop(), pos).sprite.drop();
+					}
+				} else {
+					// Verdant boosted dew drop rate: ~40% base up to ~55% with naturalism
+					lootChance = 1 / (2.5f - naturalismLevel * 0.25f);
+					if (Random.Float() < lootChance) {
+						level.drop(new Dewdrop(), pos).sprite.drop();
+					}
 				}
 			}
 

@@ -28,10 +28,14 @@ import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Tinkerer;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.Toadstool;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.StandardRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.SewerPainter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.AlarmTrap;
@@ -139,7 +143,34 @@ public class SewerLevel extends RegularLevel {
 	@Override
 	protected void createMobs() {
 		Ghost.Quest.spawn( this, roomExit );
+		if (Dungeon.depth == 2) {
+			Tinkerer tinkerer = new Tinkerer();
+			Room r = randomRoom(StandardRoom.class);
+			if (r == null) r = roomExit;
+			int cell;
+			int tries = 0;
+			do {
+				cell = pointToCell(r.random());
+			} while (++tries < 100 && (cell == -1 || solid[cell] || !openSpace[cell] || cell == exit() || cell == entrance()));
+			if (cell != -1 && !solid[cell]) {
+				tinkerer.pos = cell;
+				mobs.add( tinkerer );
+			}
+		}
 		super.createMobs();
+	}
+
+	@Override
+	protected void createItems() {
+		super.createItems();
+		if (Dungeon.depth == 2) {
+			int toadCell = randomDropCell();
+			if (map[toadCell] == Terrain.HIGH_GRASS || map[toadCell] == Terrain.FURROWED_GRASS) {
+				map[toadCell] = Terrain.GRASS;
+				losBlocking[toadCell] = false;
+			}
+			drop(new Toadstool(), toadCell);
+		}
 	}
 	
 	@Override

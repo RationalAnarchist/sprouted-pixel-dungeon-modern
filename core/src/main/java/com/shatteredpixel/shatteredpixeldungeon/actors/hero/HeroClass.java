@@ -111,9 +111,6 @@ public enum HeroClass {
 		new VelvetPouch().collect();
 		Dungeon.LimitedDrops.VELVET_POUCH.drop();
 
-		Waterskin waterskin = new Waterskin();
-		waterskin.collect();
-
 		new ScrollOfIdentify().identify();
 
 		switch (this) {
@@ -141,16 +138,6 @@ public enum HeroClass {
 				initCleric( hero );
 				break;
 		}
-
-		if (SPDSettings.quickslotWaterskin()) {
-			for (int s = 0; s < QuickSlot.SIZE; s++) {
-				if (Dungeon.quickslot.getItem(s) == null) {
-					Dungeon.quickslot.setSlot(s, waterskin);
-					break;
-				}
-			}
-		}
-
 	}
 
 	public Badges.Badge masteryBadge() {

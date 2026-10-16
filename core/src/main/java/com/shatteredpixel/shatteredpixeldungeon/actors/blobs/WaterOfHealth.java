@@ -58,6 +58,11 @@ public class WaterOfHealth extends WellWater {
 		hero.belongings.uncurseEquipped();
 		hero.buff( Hunger.class ).satisfy( Hunger.STARVING );
 
+		Waterskin waterskin = hero.belongings.getItem(Waterskin.class);
+		if (waterskin != null && !waterskin.isFull()) {
+			waterskin.fill();
+		}
+
 		if (VialOfBlood.delayBurstHealing()){
 			Healing healing = Buff.affect(hero, Healing.class);
 			healing.setHeal(hero.HT, 0, VialOfBlood.maxHealPerTurn(), true);

@@ -53,6 +53,11 @@ public class ShatteredPixelDungeon extends Game {
 				com.shatteredpixel.shatteredpixeldungeon.items.keys.WornKey.class,
 				"com.shatteredpixel.shatteredpixeldungeon.items.keys.SkeletonKey" );
 
+		//Verdant: DewVial replaces Waterskin
+		com.watabou.utils.Bundle.addAlias(
+				com.shatteredpixel.shatteredpixeldungeon.items.DewVial.class,
+				"com.shatteredpixel.shatteredpixeldungeon.items.Waterskin" );
+
 	}
 	
 	@Override
