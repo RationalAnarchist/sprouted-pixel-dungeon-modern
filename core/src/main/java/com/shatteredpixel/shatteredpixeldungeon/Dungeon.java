@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.S
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.spells.DivineSense;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
@@ -449,6 +450,41 @@ public class Dungeon {
 			return 26;
 		} else {
 			return depth;
+		}
+	}
+
+	// Verdant: Global enemy stat scaling by depth to match Dew Vial progression
+	public static float mobStatModifier(Char ch) {
+		if (ch == null || !(ch instanceof Mob) || ch instanceof NPC) {
+			return 1f;
+		}
+
+		// Hero allies and pets do not get enemy scaling
+		if (ch.alignment != Char.Alignment.ENEMY) {
+			return 1f;
+		}
+
+		// Postpone custom boss scaling for later
+		if (ch.properties().contains(Char.Property.BOSS)) {
+			return 1f;
+		}
+
+		int depth = Dungeon.scalingDepth();
+		if (depth <= 5) {
+			// Sewers (depths 1-5): 1.0x baseline for early setup
+			return 1f;
+		} else if (depth <= 10) {
+			// Prison (depths 6-10): +4% per depth -> 1.04x to 1.20x
+			return 1f + (depth - 5) * 0.04f;
+		} else if (depth <= 15) {
+			// Caves (depths 11-15): +6% per depth -> 1.26x to 1.50x
+			return 1.20f + (depth - 10) * 0.06f;
+		} else if (depth <= 20) {
+			// City (depths 16-20): +7% per depth -> 1.57x to 1.85x
+			return 1.50f + (depth - 15) * 0.07f;
+		} else {
+			// Halls (depths 21-25+): +8% per depth -> 1.93x to 2.25x
+			return 1.85f + (depth - 20) * 0.08f;
 		}
 	}
 

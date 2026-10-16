@@ -103,8 +103,10 @@ public class AscensionChallenge extends Buff {
 	}
 
 	public static float statModifier(Char ch){
+		float base = Dungeon.mobStatModifier(ch);
+
 		if (Dungeon.hero == null || Dungeon.hero.buff(AscensionChallenge.class) == null){
-			return 1;
+			return base;
 		}
 
 		if (ch instanceof Ratmogrify.TransmogRat){
@@ -112,16 +114,16 @@ public class AscensionChallenge extends Buff {
 		}
 
 		if (ch.buff(AscensionBuffBlocker.class) != null){
-			return 1f;
+			return base;
 		}
 
 		for (Class<?extends Mob> cls : modifiers.keySet()){
 			if (cls.isAssignableFrom(ch.getClass())){
-				return modifiers.get(cls);
+				return base * modifiers.get(cls);
 			}
 		}
 
-		return 1;
+		return base;
 	}
 
 	//distant mobs get constantly beckoned to the hero at 2+ stacks

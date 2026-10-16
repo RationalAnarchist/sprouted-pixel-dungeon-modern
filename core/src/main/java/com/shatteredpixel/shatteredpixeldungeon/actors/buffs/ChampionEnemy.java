@@ -106,7 +106,35 @@ public abstract class ChampionEnemy extends Buff {
 			case 5:             buffCls = Growing.class;      break;
 		}
 
-		if (Dungeon.mobsToChampion <= 0 && Dungeon.isChallenged(Challenges.CHAMPION_ENEMIES)) {
+		boolean shouldSpawn = false;
+		float spawnInterval = 0;
+
+		if (Dungeon.isChallenged(Challenges.CHAMPION_ENEMIES)) {
+			shouldSpawn = Dungeon.mobsToChampion <= 0;
+			spawnInterval = 8 - Math.min(20, Dungeon.scalingDepth()-1)/10f;
+		} else {
+			// Verdant: Natural champion enemies scaling with depth
+			int depth = Dungeon.scalingDepth();
+			if (depth >= 6) {
+				if (depth <= 10) {
+					spawnInterval = 20f;  // Prison: ~5% (1 in 20)
+				} else if (depth <= 15) {
+					spawnInterval = 10f;  // Caves: ~10% (1 in 10)
+				} else if (depth <= 20) {
+					spawnInterval = 5.5f; // City: ~18% (1 in 5.5)
+				} else {
+					spawnInterval = 4f;   // Halls: ~25% (1 in 4)
+				}
+				shouldSpawn = Dungeon.mobsToChampion <= 0;
+			} else {
+				// Keep debt from accumulating in Sewers
+				if (Dungeon.mobsToChampion < 1) {
+					Dungeon.mobsToChampion = 20f;
+				}
+			}
+		}
+
+		if (shouldSpawn) {
 
 			//we block certain standout enemies on floor <10 from becoming champions
 			if (m instanceof Crab  && Dungeon.scalingDepth() <= 3) return;
@@ -115,8 +143,8 @@ public abstract class ChampionEnemy extends Buff {
 			if (m instanceof Bat   && Dungeon.scalingDepth() <= 9) return;
 
 			Buff.affect(m, buffCls);
-			//numbers of mobs until a champion scales from 1/8 to 1/6 as depths increases
-			Dungeon.mobsToChampion += 8 - Math.min(20, Dungeon.scalingDepth()-1)/10f;
+			//numbers of mobs until a champion scales from spawnInterval
+			Dungeon.mobsToChampion = Math.max(0, Dungeon.mobsToChampion) + spawnInterval;
 			if (m.state != m.PASSIVE) {
 				m.state = m.WANDERING;
 			}
