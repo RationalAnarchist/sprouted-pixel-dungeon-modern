@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
@@ -56,27 +57,78 @@ public class Dewdrop extends Item {
 		Catalog.setSeen(getClass());
 		Statistics.itemTypesDiscovered.add(getClass());
 		
+		int collectedToFlask = 0;
 		if (flask != null && !flask.isFull()){
-
+			int beforeQty = this.quantity;
 			flask.collectDew( this );
-			GameScene.pickUp( this, pos );
-
-		} else {
-
-			int terr = Dungeon.level.map[pos];
-			if (!consumeDew(1, hero, terr == Terrain.ENTRANCE || terr == Terrain.ENTRANCE_SP
-					|| terr == Terrain.EXIT || terr == Terrain.UNLOCKED_EXIT)){
-				return false;
-			} else {
-				Catalog.countUse(getClass());
-			}
-			
+			collectedToFlask = beforeQty - this.quantity;
 		}
-		
+
+		int consumedForHealing = 0;
+		if (this.quantity > 0) {
+			int needed = dropsNeeded(hero);
+			if (needed > 0) {
+				int toHeal = Math.min(needed, this.quantity);
+				if (consumeDew(toHeal, hero, true)) {
+					consumedForHealing = toHeal;
+					this.quantity -= toHeal;
+					Catalog.countUses(getClass(), toHeal);
+				}
+			}
+		}
+
+		if (collectedToFlask == 0 && consumedForHealing == 0) {
+			int terr = Dungeon.level.map[pos];
+			boolean onStairs = terr == Terrain.ENTRANCE || terr == Terrain.ENTRANCE_SP
+					|| terr == Terrain.EXIT || terr == Terrain.UNLOCKED_EXIT;
+			if (!onStairs) {
+				GLog.i( Messages.get(Dewdrop.class, "already_full") );
+				return false;
+			}
+		}
+
+		if (this.quantity > 0) {
+			Dewdrop remainder = new Dewdrop();
+			remainder.quantity = this.quantity;
+			this.quantity = 0;
+			Actor.add(new Actor() {
+				{ actPriority = VFX_PRIO; }
+				@Override
+				protected boolean act() {
+					Dungeon.level.drop(remainder, pos).sprite.drop(pos);
+					return true;
+				}
+			});
+		}
+
+		if (collectedToFlask > 0) {
+			GameScene.pickUp( this, pos );
+		}
 		Sample.INSTANCE.play( Assets.Sounds.DEWDROP );
 		hero.spendAndNext( pickupDelay() );
 		
 		return true;
+	}
+
+	public static int dropsNeeded(Hero hero) {
+		float missingHealthPercent = 1f - (hero.HP / (float)hero.HT);
+		float dropsNeeded = missingHealthPercent / 0.05f;
+		if (dropsNeeded > 1.01f && VialOfBlood.delayBurstHealing()){
+			dropsNeeded /= VialOfBlood.totalHealMultiplier();
+		}
+		if (hero.hasTalent(Talent.SHIELDING_DEW)){
+			int curShield = 0;
+			if (hero.buff(Barrier.class) != null) curShield = hero.buff(Barrier.class).shielding();
+			int maxShield = Math.round(hero.HT * 0.2f * hero.pointsInTalent(Talent.SHIELDING_DEW));
+			if (maxShield > curShield) {
+				float missingShieldPercent = 1f - (curShield / (float)maxShield);
+				missingShieldPercent *= 0.2f * hero.pointsInTalent(Talent.SHIELDING_DEW);
+				if (missingShieldPercent > 0){
+					dropsNeeded += missingShieldPercent / 0.05f;
+				}
+			}
+		}
+		return Math.max(0, (int)Math.ceil(dropsNeeded - 0.01f));
 	}
 
 	public static boolean consumeDew(int quantity, Hero hero, boolean force){
@@ -135,23 +187,6 @@ public class Dewdrop extends Item {
 	@Override
 	public boolean isIdentified() {
 		return true;
-	}
-
-	//max of one dew in a stack
-
-	@Override
-	public Item merge( Item other ){
-		if (isSimilar( other )){
-			quantity = 1;
-			other.quantity = 0;
-		}
-		return this;
-	}
-
-	@Override
-	public Item quantity(int value) {
-		quantity = Math.min( value, 1);
-		return this;
 	}
 
 }

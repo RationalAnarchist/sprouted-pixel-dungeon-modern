@@ -172,15 +172,17 @@ public class Waterskin extends Item {
 	}
 
 	public void collectDew( Dewdrop dew ) {
-
-		GLog.i( Messages.get(this, "collected") );
-		volume += dew.quantity;
-		if (volume >= MAX_VOLUME) {
-			volume = MAX_VOLUME;
-			GLog.p( Messages.get(this, "full") );
+		int space = MAX_VOLUME - volume;
+		int toCollect = Math.min(space, dew.quantity);
+		if (toCollect > 0) {
+			volume += toCollect;
+			dew.quantity -= toCollect;
+			GLog.i( Messages.get(this, "collected") );
+			if (volume >= MAX_VOLUME) {
+				GLog.p( Messages.get(this, "full") );
+			}
+			updateQuickslot();
 		}
-
-		updateQuickslot();
 	}
 
 	public void fill() {

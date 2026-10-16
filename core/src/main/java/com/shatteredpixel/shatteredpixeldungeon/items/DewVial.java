@@ -180,13 +180,17 @@ public class DewVial extends Waterskin {
 
 	@Override
 	public void collectDew( Dewdrop dew ) {
-		GLog.i( Messages.get(DewVial.class, "collected", dew.quantity) );
-		volume += dew.quantity;
-		if (volume >= MAX_VOLUME) {
-			volume = MAX_VOLUME;
-			GLog.p( Messages.get(DewVial.class, "full") );
+		int space = MAX_VOLUME - volume;
+		int toCollect = Math.min(space, dew.quantity);
+		if (toCollect > 0) {
+			volume += toCollect;
+			dew.quantity -= toCollect;
+			GLog.i( Messages.get(DewVial.class, "collected", toCollect) );
+			if (volume >= MAX_VOLUME) {
+				GLog.p( Messages.get(DewVial.class, "full") );
+			}
+			updateQuickslot();
 		}
-		updateQuickslot();
 	}
 
 	@Override
