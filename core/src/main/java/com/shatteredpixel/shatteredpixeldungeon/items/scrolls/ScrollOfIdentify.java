@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Identification;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
@@ -32,6 +33,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+
+import java.util.ArrayList;
 
 public class ScrollOfIdentify extends InventoryScroll {
 
@@ -51,7 +54,33 @@ public class ScrollOfIdentify extends InventoryScroll {
 		
 		curUser.sprite.parent.add( new Identification( curUser.sprite.center().offset( 0, -16 ) ) );
 
-		IDItem(item);
+		ArrayList<Item> toIdentify = new ArrayList<>();
+		for (Item other : curUser.belongings) {
+			if (other != null && !other.isIdentified() && isSameCategory(item, other)) {
+				toIdentify.add(other);
+			}
+		}
+
+		if (!toIdentify.contains(item) && !item.isIdentified()) {
+			toIdentify.add(item);
+		}
+
+		for (Item it : toIdentify) {
+			IDItem(it);
+		}
+
+		if (toIdentify.size() > 1) {
+			GLog.p(Messages.get(ScrollOfIdentify.class, "all_identified", toIdentify.size()));
+		}
+	}
+
+	public static boolean isSameCategory(Item a, Item b) {
+		if (a instanceof Weapon && b instanceof Weapon) return true;
+		if (a instanceof Armor && b instanceof Armor) return true;
+		if (a instanceof Ring && b instanceof Ring) return true;
+		if (a instanceof Wand && b instanceof Wand) return true;
+		if (a instanceof Artifact && b instanceof Artifact) return true;
+		return a.getClass().equals(b.getClass()) || a.getClass().isInstance(b) || b.getClass().isInstance(a);
 	}
 
 	public static void IDItem( Item item ){

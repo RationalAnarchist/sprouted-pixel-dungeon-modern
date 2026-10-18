@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.VialOfBlood;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -72,6 +73,7 @@ public class DewVial extends Waterskin {
 	public static final String AC_TRIAL      = "TRIAL";
 	public static final String AC_WATER      = "WATER";
 	public static final String AC_GROW_GRASS = "GROW_GRASS";
+	public static final String AC_WASH       = "WASH";
 
 	private static final float TIME_TO_DRINK  = 1f;
 	private static final float TIME_TO_SPLASH = 1f;
@@ -128,6 +130,8 @@ public class DewVial extends Waterskin {
 			actions.add( AC_BLESS );
 		}
 
+		actions.add( AC_WASH );
+
 		return actions;
 	}
 
@@ -148,6 +152,8 @@ public class DewVial extends Waterskin {
 		} else if (action.equals(AC_BLESS)) {
 			int cost = blessItemCost(hero, mode);
 			return Messages.format(Messages.get(DewVial.class, "ac_bless_cost"), cost);
+		} else if (action.equals(AC_WASH)) {
+			return Messages.get(DewVial.class, "ac_wash");
 		}
 		return super.actionName(action, hero);
 	}
@@ -383,6 +389,48 @@ public class DewVial extends Waterskin {
 				}
 			});
 
+		} else if (action.equals( AC_WASH )) {
+
+			if (volume < 10) {
+				GLog.w( Messages.get(DewVial.class, "wash_need_dew", 10, volume) );
+				return;
+			}
+
+			GameScene.selectItem(new WndBag.ItemSelector() {
+				@Override
+				public String textPrompt() {
+					return Messages.get(DewVial.class, "prompt_wash");
+				}
+
+				@Override
+				public boolean itemSelectable(Item item) {
+					return !item.isIdentified();
+				}
+
+				@Override
+				public void onSelect(Item item) {
+					if (item != null) {
+						if (volume < 10) {
+							GLog.w( Messages.get(DewVial.class, "wash_need_dew", 10, volume) );
+							return;
+						}
+						volume -= 10;
+						hero.spend(1f);
+						hero.busy();
+						hero.sprite.operate(hero.pos);
+
+						Sample.INSTANCE.play(Assets.Sounds.WATER);
+						CellEmitter.get(hero.pos).burst(LeafParticle.LEVEL_SPECIFIC, 6);
+
+						GLog.p( Messages.get(DewVial.class, "wash_clean", item.name()) );
+						ScrollOfIdentify.IDItem(item);
+
+						Catalog.countUse(Dewdrop.class);
+						updateQuickslot();
+					}
+				}
+			});
+
 		} else {
 			super.execute( hero, action );
 		}
@@ -401,6 +449,9 @@ public class DewVial extends Waterskin {
 			item.upgrade();
 			GLog.p( Messages.get(DewVial.class, "bless_success", item.name(), item.level()) );
 		}
+
+		// 3. Auto-identify blessed item
+		ScrollOfIdentify.IDItem(item);
 
 		Sample.INSTANCE.play(Assets.Sounds.MASTERY);
 		hero.sprite.emitter().burst(Speck.factory(Speck.LIGHT), 8);
@@ -423,6 +474,7 @@ public class DewVial extends Waterskin {
 			if (item.isUpgradable() && (item instanceof Weapon || item instanceof Armor || item instanceof Wand || item instanceof Ring)) {
 				if (item.level() < cap && Random.Float() < 0.45f) {
 					item.upgrade();
+					ScrollOfIdentify.IDItem(item);
 					upgradedCount++;
 				}
 			}
