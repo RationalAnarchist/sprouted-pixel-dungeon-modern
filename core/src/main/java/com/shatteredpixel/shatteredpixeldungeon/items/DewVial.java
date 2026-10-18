@@ -142,7 +142,7 @@ public class DewVial extends Waterskin {
 	@Override
 	public String actionName(String action, Hero hero) {
 		if (action.equals(AC_TRIAL)) {
-			return Messages.get(DewVial.class, "ac_trial");
+			return Messages.format(Messages.get(DewVial.class, "ac_trial_cap"), upgradeCap());
 		} else if (action.equals(AC_GROW_GRASS) || action.equals(AC_WATER)) {
 			return Messages.get(DewVial.class, "ac_grow_grass");
 		} else if (action.equals(AC_BLESS)) {
@@ -389,9 +389,6 @@ public class DewVial extends Waterskin {
 	}
 
 	private void blessSingleItem(Hero hero, Item item) {
-		int cap = upgradeCap();
-		boolean upgraded = false;
-
 		// 1. Cleanse curses
 		if (item.cursed) {
 			item.cursed = false;
@@ -399,13 +396,10 @@ public class DewVial extends Waterskin {
 			GLog.p( Messages.get(DewVial.class, "uncurse_item", item.name()) );
 		}
 
-		// 2. Upgrade if under cap
-		if (item.level() < cap) {
+		// 2. Upgrade (uncapped: can upgrade beyond the trial cap)
+		if (item.isUpgradable()) {
 			item.upgrade();
-			upgraded = true;
 			GLog.p( Messages.get(DewVial.class, "bless_success", item.name(), item.level()) );
-		} else {
-			GLog.w( Messages.get(DewVial.class, "cap_reached", item.name(), cap) );
 		}
 
 		Sample.INSTANCE.play(Assets.Sounds.MASTERY);
@@ -436,18 +430,16 @@ public class DewVial extends Waterskin {
 
 		Sample.INSTANCE.play(Assets.Sounds.MASTERY);
 		hero.sprite.emitter().burst(Speck.factory(Speck.LIGHT), 12);
-		GLog.p( Messages.get(DewVial.class, "bless_pack", upgradedCount) );
+		GLog.p( Messages.get(DewVial.class, "bless_pack", upgradedCount, cap) );
 	}
 
 	@Override
 	public String info() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(Messages.get(DewVial.class, "desc"));
-		sb.append("\n\n");
-		sb.append(Messages.get(DewVial.class, "desc_cap", upgradeCap()));
 
 		if (mode == Mode.WATER) {
-			sb.append("\n\n").append(Messages.get(DewVial.class, "desc_water_mode"));
+			sb.append("\n\n").append(Messages.get(DewVial.class, "desc_water_mode", upgradeCap()));
 		} else if (mode == Mode.DRAW_OUT) {
 			sb.append("\n\n").append(Messages.get(DewVial.class, "desc_draw_mode"));
 		} else {
