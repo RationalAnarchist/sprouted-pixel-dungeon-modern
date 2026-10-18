@@ -36,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corruption;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.DewSurge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Dread;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.GreaterHaste;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
@@ -1044,9 +1045,12 @@ public abstract class Mob extends Char {
 				DewVial vial = Dungeon.hero.belongings.getItem(DewVial.class);
 				if (vial != null && vial.mode == DewVial.Mode.DRAW_OUT) {
 					int dewAmount = 0;
+					boolean surgeActive = Dungeon.hero.buff(DewSurge.class) != null;
 					if (properties.contains(Property.BOSS) || properties.contains(Property.MINIBOSS)) {
-						dewAmount = Random.IntRange(8, 15);
+						dewAmount = surgeActive ? Random.IntRange(15, 25) : Random.IntRange(8, 15);
 					} else if (buff(ChampionEnemy.class) != null) {
+						dewAmount = surgeActive ? Random.IntRange(8, 12) : Random.IntRange(3, 6);
+					} else if (surgeActive) {
 						dewAmount = Random.IntRange(3, 6);
 					} else if (Random.Float() < 0.65f) {
 						dewAmount = Random.IntRange(1, 3);

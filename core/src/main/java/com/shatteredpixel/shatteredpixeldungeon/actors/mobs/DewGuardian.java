@@ -24,10 +24,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.DewVial;
 import com.shatteredpixel.shatteredpixeldungeon.items.Dewdrop;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.DewGuardianSprite;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.tweeners.AlphaTweener;
 import com.watabou.utils.Bundle;
@@ -145,8 +147,20 @@ public class DewGuardian extends Mob {
 
 	@Override
 	public void die(Object cause) {
-		// Guaranteed refund of the 50 dewdrops spent on the trial
-		Dungeon.level.drop(new Dewdrop().quantity(50), pos).sprite.drop();
+		// Guaranteed refund of the 50 dewdrops spent on the trial directly into the Dew Vial
+		DewVial vial = Dungeon.hero != null ? Dungeon.hero.belongings.getItem(DewVial.class) : null;
+		if (vial != null) {
+			int space = DewVial.MAX_VOLUME - vial.getVolume();
+			int refund = Math.min(50, space);
+			vial.setVolume(vial.getVolume() + refund);
+			GLog.p( Messages.get(DewGuardian.class, "defeat_refund", refund) );
+			int excess = 50 - refund;
+			if (excess > 0) {
+				Dungeon.level.drop(new Dewdrop().quantity(excess), pos).sprite.drop();
+			}
+		} else {
+			Dungeon.level.drop(new Dewdrop().quantity(50), pos).sprite.drop();
+		}
 
 		Sample.INSTANCE.play(Assets.Sounds.WATER);
 		if (Dungeon.level != null && Dungeon.level.heroFOV[pos]) {
