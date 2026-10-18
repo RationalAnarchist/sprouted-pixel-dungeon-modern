@@ -240,6 +240,8 @@ public class DewVial extends Waterskin {
 			hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 5);
 			GLog.p( Messages.get(DewVial.class, "drink_msg") );
 
+			Talent.onPotionUsed(hero, hero.pos, 1f);
+
 			updateQuickslot();
 
 		} else if (action.equals( AC_SIP )) {
@@ -255,6 +257,7 @@ public class DewVial extends Waterskin {
 				hero.busy();
 				Sample.INSTANCE.play(Assets.Sounds.DRINK);
 				hero.sprite.operate(hero.pos);
+				Talent.onPotionUsed(hero, hero.pos, 0.5f);
 				updateQuickslot();
 			} else {
 				GLog.i( Messages.get(Dewdrop.class, "already_full") );
@@ -280,9 +283,12 @@ public class DewVial extends Waterskin {
 			Buff.affect(hero, Invisibility.class, 25f);
 
 			GLog.p( Messages.get(DewVial.class, "splash_msg") );
+
+			Talent.onPotionUsed(hero, hero.pos, 1f);
+
 			updateQuickslot();
 
-		} else if (action.equals( AC_TRIAL ) || (action.equals( AC_BLESS ) && mode == Mode.WATER)) {
+		} else if (action.equals( AC_TRIAL )) {
 
 			if (volume < 50) {
 				GLog.w( Messages.get(DewVial.class, "trial_need_dew", 50, volume) );

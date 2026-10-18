@@ -57,7 +57,7 @@ public class WndBag extends WndTabbed {
 	public static Window INSTANCE;
 
 	protected static final int COLS_P   = 5;
-	protected static final int COLS_L   = 5;
+	protected static final int COLS_L   = 7;
 	
 	protected static int SLOT_WIDTH_P   = 28;
 	protected static int SLOT_WIDTH_L   = 28;
@@ -104,7 +104,11 @@ public class WndBag extends WndTabbed {
 		slotHeight = PixelScene.landscape() ? SLOT_HEIGHT_L : SLOT_HEIGHT_P;
 
 		nCols = PixelScene.landscape() ? COLS_L : COLS_P;
-		nRows = (int)Math.ceil(25/(float)nCols); //we expect to lay out 25 slots in all cases
+		int totalSlots = 5
+				+ (Dungeon.hero != null && Dungeon.hero.belongings != null && Dungeon.hero.belongings.secondWep != null && bag == Dungeon.hero.belongings.backpack ? 1 : 0)
+				+ (bag == Dungeon.hero.belongings.backpack ? 0 : 1)
+				+ bag.capacity();
+		nRows = (int)Math.ceil(totalSlots / (float)nCols);
 
 		int windowWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
 		int windowHeight = TITLE_HEIGHT + slotHeight * nRows + SLOT_MARGIN * (nRows - 1);
@@ -118,6 +122,10 @@ public class WndBag extends WndTabbed {
 			while (slotWidth >= 26 && (windowWidth + chrome.marginHor()) > PixelScene.uiCamera.width){
 				slotWidth--;
 				windowWidth -= nCols;
+			}
+			while (slotHeight >= 24 && (windowHeight + 20 + chrome.marginTop()) > PixelScene.uiCamera.height){
+				slotHeight--;
+				windowHeight -= nRows;
 			}
 		}
 
