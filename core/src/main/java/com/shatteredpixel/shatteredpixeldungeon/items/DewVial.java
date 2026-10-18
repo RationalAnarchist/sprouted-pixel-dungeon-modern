@@ -474,7 +474,6 @@ public class DewVial extends Waterskin {
 			if (item.isUpgradable() && (item instanceof Weapon || item instanceof Armor || item instanceof Wand || item instanceof Ring)) {
 				if (item.level() < cap && Random.Float() < 0.45f) {
 					item.upgrade();
-					ScrollOfIdentify.IDItem(item);
 					upgradedCount++;
 				}
 			}
