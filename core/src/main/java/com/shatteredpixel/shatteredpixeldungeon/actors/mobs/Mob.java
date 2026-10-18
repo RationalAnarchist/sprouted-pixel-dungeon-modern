@@ -1039,12 +1039,15 @@ public abstract class Mob extends Char {
 
 			rollToDropLoot();
 
-			// Verdant: Draw Out Dew specialization
-			// Defeated enemies yield dewdrops directly to fuel the 90-dew targeted upgrades
+			// Verdant: Dew drops from mobs & Draw Out Dew specialization
 			if (Dungeon.hero != null && !(this instanceof DewGuardian)) {
 				DewVial vial = Dungeon.hero.belongings.getItem(DewVial.class);
-				if (vial != null && vial.mode == DewVial.Mode.DRAW_OUT) {
-					int dewAmount = 0;
+				boolean hasHarvester = Dungeon.hero.hasTalent(Talent.DEW_HARVESTER);
+				int harvesterPoints = hasHarvester ? Dungeon.hero.pointsInTalent(Talent.DEW_HARVESTER) : 0;
+				boolean drawOutActive = vial != null && vial.mode == DewVial.Mode.DRAW_OUT;
+
+				int dewAmount = 0;
+				if (drawOutActive) {
 					boolean surgeActive = Dungeon.hero.buff(DewSurge.class) != null;
 					if (properties.contains(Property.BOSS) || properties.contains(Property.MINIBOSS)) {
 						dewAmount = surgeActive ? Random.IntRange(15, 25) : Random.IntRange(8, 15);
@@ -1056,11 +1059,20 @@ public abstract class Mob extends Char {
 						dewAmount = Random.IntRange(1, 3);
 					}
 
-					if (dewAmount > 0) {
-						Dungeon.level.drop(new Dewdrop().quantity(dewAmount), pos).sprite.drop();
-						if (Dungeon.level.heroFOV[pos]) {
-							CellEmitter.center(pos).burst(Speck.factory(Speck.HEALING), 3);
-						}
+					if (dewAmount > 0 && harvesterPoints > 0) {
+						dewAmount += harvesterPoints;
+					}
+				} else if (harvesterPoints > 0) {
+					float dropChance = harvesterPoints == 1 ? 0.35f : 0.60f;
+					if (Random.Float() < dropChance) {
+						dewAmount = harvesterPoints == 1 ? 1 : Random.IntRange(1, 2);
+					}
+				}
+
+				if (dewAmount > 0) {
+					Dungeon.level.drop(new Dewdrop().quantity(dewAmount), pos).sprite.drop();
+					if (Dungeon.level.heroFOV[pos]) {
+						CellEmitter.center(pos).burst(Speck.factory(Speck.HEALING), 3);
 					}
 				}
 			}

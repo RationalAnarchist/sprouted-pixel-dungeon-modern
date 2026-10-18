@@ -156,6 +156,9 @@ public class HighGrass {
 				if (!wasWatered) {
 					// Verdant boosted dew drop rate for natural grass: ~40% base up to ~55% with naturalism
 					lootChance = 1 / (2.5f - naturalismLevel * 0.25f);
+					if (Dungeon.hero != null && Dungeon.hero.hasTalent(Talent.DEW_HARVESTER)) {
+						lootChance += 0.15f * Dungeon.hero.pointsInTalent(Talent.DEW_HARVESTER);
+					}
 					if (Random.Float() < lootChance) {
 						level.drop(new Dewdrop(), pos).sprite.drop();
 					}

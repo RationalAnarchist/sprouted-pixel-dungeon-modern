@@ -123,11 +123,20 @@ public class DewVial extends Waterskin {
 		if (mode == Mode.WATER) {
 			actions.add( AC_TRIAL );
 			actions.add( AC_GROW_GRASS );
+			actions.add( AC_BLESS );
 		} else {
 			actions.add( AC_BLESS );
 		}
 
 		return actions;
+	}
+
+	public static int blessItemCost(Hero hero, Mode vialMode) {
+		int baseCost = (vialMode == Mode.DRAW_OUT) ? 90 : 100;
+		if (hero != null && hero.hasTalent(Talent.VIAL_INFUSION)) {
+			baseCost -= 10 * hero.pointsInTalent(Talent.VIAL_INFUSION);
+		}
+		return Math.max(10, baseCost);
 	}
 
 	@Override
@@ -137,26 +146,15 @@ public class DewVial extends Waterskin {
 		} else if (action.equals(AC_GROW_GRASS) || action.equals(AC_WATER)) {
 			return Messages.get(DewVial.class, "ac_grow_grass");
 		} else if (action.equals(AC_BLESS)) {
-			if (mode == Mode.DRAW_OUT) {
-				return Messages.get(DewVial.class, "ac_bless_item");
-			} else {
-				return Messages.get(DewVial.class, "ac_bless");
-			}
+			int cost = blessItemCost(hero, mode);
+			return Messages.format(Messages.get(DewVial.class, "ac_bless_cost"), cost);
 		}
 		return super.actionName(action, hero);
 	}
 
 	public boolean canBless() {
 		int vol = getVolume();
-		switch (mode) {
-			case DRAW_OUT:
-				return vol >= 90;
-			case WATER:
-				return vol >= 50;
-			case NONE:
-			default:
-				return vol >= 100;
-		}
+		return vol >= blessItemCost(Dungeon.hero, mode);
 	}
 
 	public boolean canWater() {
@@ -347,7 +345,7 @@ public class DewVial extends Waterskin {
 
 		} else if (action.equals( AC_BLESS )) {
 
-			int cost = (mode == Mode.DRAW_OUT) ? 90 : 100;
+			int cost = blessItemCost(hero, mode);
 			if (volume < cost) {
 				GLog.w( Messages.get(DewVial.class, "bless_need_dew", cost, volume) );
 				return;
