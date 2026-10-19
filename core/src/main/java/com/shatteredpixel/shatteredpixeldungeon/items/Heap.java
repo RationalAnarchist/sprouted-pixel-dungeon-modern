@@ -446,6 +446,9 @@ public class Heap implements Bundlable {
 			if (item instanceof Guidebook && Document.ADVENTURERS_GUIDE.isPageRead(0)){
 				items.remove(item);
 			}
+			if (item instanceof Dewdrop && item.quantity() <= 0){
+				items.remove(item);
+			}
 		}
 		
 		haunted = bundle.getBoolean( HAUNTED );

@@ -52,6 +52,10 @@ public class Dewdrop extends Item {
 	
 	@Override
 	public boolean doPickUp(Hero hero, int pos) {
+		if (this.quantity <= 0) {
+			hero.spendAndNext( pickupDelay() );
+			return true;
+		}
 		
 		Waterskin flask = hero.belongings.getItem( Waterskin.class );
 		Catalog.setSeen(getClass());
@@ -81,7 +85,12 @@ public class Dewdrop extends Item {
 			int terr = Dungeon.level.map[pos];
 			boolean onStairs = terr == Terrain.ENTRANCE || terr == Terrain.ENTRANCE_SP
 					|| terr == Terrain.EXIT || terr == Terrain.UNLOCKED_EXIT;
-			if (!onStairs) {
+			if (onStairs && this.quantity > 0) {
+				this.quantity--;
+				consumedForHealing = 1;
+				consumeDew(1, hero, true);
+				Catalog.countUse(getClass());
+			} else {
 				GLog.i( Messages.get(Dewdrop.class, "already_full") );
 				return false;
 			}
@@ -95,6 +104,7 @@ public class Dewdrop extends Item {
 				{ actPriority = VFX_PRIO; }
 				@Override
 				protected boolean act() {
+					Actor.remove(this);
 					Dungeon.level.drop(remainder, pos).sprite.drop(pos);
 					return true;
 				}
