@@ -1117,6 +1117,25 @@ public class Hero extends Char {
 			
 			Heap heap = Dungeon.level.heaps.get( pos );
 			if (heap != null) {
+				// If the heap contains any dewdrops, collect them so they are never trapped underneath other loot
+				for (Item i : heap.items.toArray(new Item[0])) {
+					if (i instanceof Dewdrop) {
+						if (i.doPickUp(this)) {
+							heap.items.remove(i);
+							if (heap.items.isEmpty()) {
+								heap.destroy();
+							} else if (heap.sprite != null) {
+								heap.sprite.view(heap).place(pos);
+							}
+						}
+					}
+				}
+
+				if (heap.isEmpty()) {
+					curAction = null;
+					return false;
+				}
+
 				Item item = heap.peek();
 				if (item.doPickUp( this )) {
 					heap.pickUp();

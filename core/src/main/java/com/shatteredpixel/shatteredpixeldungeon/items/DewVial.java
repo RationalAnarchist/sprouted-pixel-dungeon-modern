@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
@@ -40,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.HighGrass;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
@@ -189,6 +191,9 @@ public class DewVial extends Waterskin {
 		if (toCollect > 0) {
 			volume += toCollect;
 			dew.quantity -= toCollect;
+			if (Dungeon.hero != null && Dungeon.hero.sprite != null) {
+				Dungeon.hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, "+" + toCollect, FloatingText.WATER);
+			}
 			GLog.i( Messages.get(DewVial.class, "collected", toCollect) );
 			if (volume >= MAX_VOLUME) {
 				GLog.p( Messages.get(DewVial.class, "full") );
