@@ -54,11 +54,7 @@ public class EyeOfNewt extends Trinket {
 	}
 
 	public static float visionRangeMultiplier( int level ){
-		if (level < 0){
-			return 1;
-		} else {
-			return 0.875f - 0.125f*level;
-		}
+		return 1.0f;
 	}
 
 	public static int mindVisionRange(){
@@ -69,7 +65,7 @@ public class EyeOfNewt extends Trinket {
 		if (level < 0){
 			return 0;
 		} else {
-			return 2+level;
+			return 4 + 2*level;
 		}
 	}
 

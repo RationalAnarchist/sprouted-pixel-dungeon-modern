@@ -202,6 +202,7 @@ public class Dungeon {
 	public static int energy;
 	
 	public static HashSet<Integer> chapters;
+	public static HashSet<String> offeredTrinkets = new HashSet<>();
 
 	public static SparseArray<ArrayList<Item>> droppedItems;
 
@@ -266,6 +267,7 @@ public class Dungeon {
 		depth = 1;
 		branch = 0;
 		generatedLevels.clear();
+		offeredTrinkets.clear();
 
 		gold = 0;
 		energy = 0;
@@ -716,6 +718,7 @@ public class Dungeon {
 				bundleArr[i] = generatedLevels.get(i);
 			}
 			bundle.put( GENERATED_LEVELS, bundleArr);
+			bundle.put( "offered_trinkets", offeredTrinkets.toArray(new String[0]) );
 			
 			Scroll.save( bundle );
 			Potion.save( bundle );
@@ -795,6 +798,15 @@ public class Dungeon {
 			LimitedDrops.restore( bundle.getBundle(LIMDROPS) );
 
 			chapters = new HashSet<>();
+			offeredTrinkets = new HashSet<>();
+			if (bundle.contains("offered_trinkets")) {
+				String[] trinks = bundle.getStringArray("offered_trinkets");
+				if (trinks != null) {
+					for (String t : trinks) {
+						offeredTrinkets.add(t);
+					}
+				}
+			}
 			int ids[] = bundle.getIntArray( CHAPTERS );
 			if (ids != null) {
 				for (int id : ids) {

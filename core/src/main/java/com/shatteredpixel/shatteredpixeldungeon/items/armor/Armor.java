@@ -462,28 +462,10 @@ public class Armor extends EquipableItem {
 				inscribe( Glyph.random() );
 			}
 		} else if (glyph != null) {
-			//chance to lose harden buff is 10/20/40/80/100% when upgrading from +6/7/8/9/10
-			if (glyphHardened) {
-				if (level() >= 6 && Random.Float(10) < Math.pow(2, level()-6)){
-					glyphHardened = false;
-				}
-
 			//chance to remove curse is a static 33%
-			} else if (hasCurseGlyph()){
+			if (hasCurseGlyph()){
 				if (Random.Int(3) == 0) inscribe(null);
-
-			//otherwise chance to lose glyph is 10/20/40/80/100% when upgrading from +4/5/6/7/8
-			} else {
-
-				//the chance from +4/5, and then +6 can be set to 0% with metamorphed runic transference
-				int lossChanceStart = 4;
-				if (Dungeon.hero != null && Dungeon.hero.heroClass != HeroClass.WARRIOR && Dungeon.hero.hasTalent(Talent.RUNIC_TRANSFERENCE)){
-					lossChanceStart += 1+Dungeon.hero.pointsInTalent(Talent.RUNIC_TRANSFERENCE);
-				}
-
-				if (level() >= lossChanceStart && Random.Float(10) < Math.pow(2, level()-4)) {
-					inscribe(null);
-				}
+			// In Verdant PD, positive glyphs and hardened glyphs are permanent through upgrades!
 			}
 		}
 		

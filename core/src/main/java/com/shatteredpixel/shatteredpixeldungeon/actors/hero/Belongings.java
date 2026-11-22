@@ -71,6 +71,8 @@ public class Belongings implements Iterable<Item> {
 	}
 
 	public Backpack backpack;
+	public int extraBagCapacity = 0;
+	private static final String EXTRA_CAPACITY = "extra_capacity";
 	
 	public Belongings( Hero owner ) {
 		this.owner = owner;
@@ -183,6 +185,7 @@ public class Belongings implements Iterable<Item> {
 		bundle.put( MISC, misc );
 		bundle.put( RING, ring );
 		bundle.put( SECOND_WEP, secondWep );
+		bundle.put( EXTRA_CAPACITY, extraBagCapacity );
 	}
 
 	public static boolean bundleRestoring = false;
@@ -208,6 +211,7 @@ public class Belongings implements Iterable<Item> {
 		if (ring() != null)         ring().activate( owner );
 
 		secondWep = (KindOfWeapon) bundle.get(SECOND_WEP);
+		extraBagCapacity = bundle.getInt(EXTRA_CAPACITY);
 		if (secondWep() != null)    secondWep().activate(owner);
 
 		bundleRestoring = false;

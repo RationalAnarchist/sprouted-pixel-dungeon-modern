@@ -45,7 +45,7 @@ public abstract class Trinket extends Item {
 
 	protected abstract int upgradeEnergyCost();
 
-	protected static int trinketLevel(Class<? extends Trinket> trinketType ){
+	public static int trinketLevel(Class<? extends Trinket> trinketType ){
 		if (Dungeon.hero == null || Dungeon.hero.belongings == null){
 			return -1;
 		}

@@ -47,6 +47,8 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndInfoItem;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndSadGhost;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -143,6 +145,30 @@ public class TrinketCatalyst extends Item {
 		}
 	}
 
+	public static class RecycleRecipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe {
+
+		@Override
+		public boolean testIngredients(ArrayList<Item> ingredients) {
+			return ingredients.size() == 1 && ingredients.get(0) instanceof Trinket && !(ingredients.get(0) instanceof TrinketCatalyst);
+		}
+
+		@Override
+		public int cost(ArrayList<Item> ingredients) {
+			return 6;
+		}
+
+		@Override
+		public Item brew(ArrayList<Item> ingredients) {
+			ingredients.get(0).quantity(0);
+			return new TrinketCatalyst();
+		}
+
+		@Override
+		public Item sampleOutput(ArrayList<Item> ingredients) {
+			return new TrinketCatalyst();
+		}
+	}
+
 	public static class RandomTrinket extends Item {
 
 		{
@@ -173,9 +199,30 @@ public class TrinketCatalyst extends Item {
 			message.setPos(0, titlebar.bottom() + GAP);
 			add( message );
 
-			//roll new trinkets if trinkets were not already rolled
-			while (cata.rolledTrinkets.size() < NUM_TRINKETS){
-				cata.rolledTrinkets.add((Trinket) Generator.random(Generator.Category.TRINKET));
+			//roll new trinkets if trinkets were not already rolled (avoiding repeats until all have been offered)
+			if (cata.rolledTrinkets.isEmpty()){
+				ArrayList<Class<? extends Trinket>> candidates = new ArrayList<>();
+				for (Class<?> cls : Generator.Category.TRINKET.classes) {
+					if (!Dungeon.offeredTrinkets.contains(cls.getSimpleName())) {
+						candidates.add((Class<? extends Trinket>) cls);
+					}
+				}
+				if (candidates.size() < NUM_TRINKETS) {
+					Dungeon.offeredTrinkets.clear();
+					candidates.clear();
+					for (Class<?> cls : Generator.Category.TRINKET.classes) {
+						candidates.add((Class<? extends Trinket>) cls);
+					}
+				}
+				while (cata.rolledTrinkets.size() < NUM_TRINKETS && !candidates.isEmpty()) {
+					Class<? extends Trinket> picked = Random.element(candidates);
+					candidates.remove(picked);
+					Dungeon.offeredTrinkets.add(picked.getSimpleName());
+					Trinket t = (Trinket) Reflection.newInstance(picked);
+					if (t != null) {
+						cata.rolledTrinkets.add(t);
+					}
+				}
 			}
 
 			for (int i = 0; i < NUM_TRINKETS; i++){

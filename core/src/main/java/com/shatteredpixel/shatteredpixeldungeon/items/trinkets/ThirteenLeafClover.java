@@ -58,7 +58,7 @@ public class ThirteenLeafClover extends Trinket {
 		}
 	}
 
-	private static float MAX_CHANCE = 0.6f;
+	private static float MAX_CHANCE = 0.95f;
 
 	public static int alterDamageRoll(int min, int max){
 		if (Random.Float() < MAX_CHANCE){

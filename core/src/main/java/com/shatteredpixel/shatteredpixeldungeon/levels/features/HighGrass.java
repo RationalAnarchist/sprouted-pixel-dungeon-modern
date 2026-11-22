@@ -38,7 +38,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Camouflage;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.SandalsOfNature;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Berry;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MossyClump;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.PetrifiedSeed;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
@@ -159,8 +161,16 @@ public class HighGrass {
 					if (Dungeon.hero != null && Dungeon.hero.hasTalent(Talent.DEW_HARVESTER)) {
 						lootChance += 0.15f * Dungeon.hero.pointsInTalent(Talent.DEW_HARVESTER);
 					}
+					int mossyLevel = Trinket.trinketLevel(MossyClump.class);
+					if (mossyLevel >= 0) {
+						lootChance += 0.20f * (mossyLevel + 1);
+					}
 					if (Random.Float() < lootChance) {
-						level.drop(new Dewdrop(), pos).sprite.drop();
+						int qty = 1;
+						if (mossyLevel >= 0 && Random.Float() < 0.25f * (mossyLevel + 1)) {
+							qty++;
+						}
+						level.drop(new Dewdrop().quantity(qty), pos).sprite.drop();
 					}
 				}
 			}
