@@ -200,6 +200,17 @@ public enum Talent {
 	//Power of Many T4
 	BEAMING_RAY(183, 4), LIFE_LINK(184, 4), STASIS(185, 4),
 
+	//Gunman T1
+	GUNSMITHS_INTUITION(65), HAIR_TRIGGER(7), POINT_BLANK_BLAST(105),
+	//Gunman T2
+	HIGH_CALIBER(8), CALIBRATED_SIGHTS(103), CONCUSSIVE_SHOTS(14), QUICK_RELOAD(79),
+	//Gunman T3
+	INCENDIARY_AMMO(50, 3), CRYO_AMMO(108, 3), SHOCK_ROUNDS(149, 3),
+	//Gunslinger T3
+	FAN_THE_HAMMER(113, 3), QUICK_DRAW(135, 3), CLOSE_QUARTERS(145, 3),
+	//Sharpshooter T3
+	HEADSHOT(107, 3), PIERCING_ROUNDS(114, 3), RICOCHET(148, 3),
+
 	//universal T4
 	HEROIC_ENERGY(26, 4), //See icon() and title() for special logic for this one
 	//Ratmogrify T4
@@ -466,6 +477,8 @@ public enum Talent {
 					return 154;
 				case CLERIC:
 					return 186;
+				case GUNMAN:
+					return 90;
 			}
 		} else if (this == DEW_HARVESTER){
 			return 112;
@@ -510,6 +523,11 @@ public enum Talent {
 		if (talent == VETERANS_INTUITION && hero.pointsInTalent(VETERANS_INTUITION) == 2){
 			if (hero.belongings.armor() != null && !ShardOfOblivion.passiveIDDisabled())  {
 				hero.belongings.armor.identify();
+			}
+		}
+		if (talent == GUNSMITHS_INTUITION && hero.pointsInTalent(GUNSMITHS_INTUITION) == 2){
+			if (hero.belongings.weapon != null && !ShardOfOblivion.passiveIDDisabled()) {
+				hero.belongings.weapon.identify();
 			}
 		}
 		if (talent == THIEFS_INTUITION && hero.pointsInTalent(THIEFS_INTUITION) == 2){
@@ -1001,6 +1019,9 @@ public enum Talent {
 			case CLERIC:
 				Collections.addAll(tierTalents, DEW_HARVESTER, HOLY_INTUITION, SEARING_LIGHT, SHIELD_OF_LIGHT);
 				break;
+			case GUNMAN:
+				Collections.addAll(tierTalents, DEW_HARVESTER, GUNSMITHS_INTUITION, HAIR_TRIGGER, POINT_BLANK_BLAST);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1030,6 +1051,9 @@ public enum Talent {
 			case CLERIC:
 				Collections.addAll(tierTalents, VIAL_INFUSION, RECALL_INSCRIPTION, SUNRAY, DIVINE_SENSE, BLESS);
 				break;
+			case GUNMAN:
+				Collections.addAll(tierTalents, VIAL_INFUSION, HIGH_CALIBER, CALIBRATED_SIGHTS, CONCUSSIVE_SHOTS, QUICK_RELOAD);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1058,6 +1082,9 @@ public enum Talent {
 				break;
 			case CLERIC:
 				Collections.addAll(tierTalents, CLEANSE, LIGHT_READING);
+				break;
+			case GUNMAN:
+				Collections.addAll(tierTalents, INCENDIARY_AMMO, CRYO_AMMO);
 				break;
 		}
 		for (Talent talent : tierTalents){
@@ -1122,6 +1149,12 @@ public enum Talent {
 				break;
 			case PALADIN:
 				Collections.addAll(tierTalents, LAY_ON_HANDS, AURA_OF_PROTECTION, WALL_OF_LIGHT);
+				break;
+			case GUNSLINGER:
+				Collections.addAll(tierTalents, FAN_THE_HAMMER, QUICK_DRAW, CLOSE_QUARTERS);
+				break;
+			case SHARPSHOOTER:
+				Collections.addAll(tierTalents, HEADSHOT, PIERCING_ROUNDS, RICOCHET);
 				break;
 		}
 		for (Talent talent : tierTalents){

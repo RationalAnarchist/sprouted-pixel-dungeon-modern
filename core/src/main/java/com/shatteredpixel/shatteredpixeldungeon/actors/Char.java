@@ -45,6 +45,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corrosion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corruption;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Daze;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Doom;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Dread;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FireImbue;
@@ -943,11 +944,15 @@ public abstract class Char extends Actor {
 		
 		//TODO improve this when I have proper damage source logic
 		if (AntiMagic.RESISTS.contains(src.getClass())){
-			dmg -= AntiMagic.drRoll(this, glyphLevel(AntiMagic.class));
-			if (buff(ArcaneArmor.class) != null) {
-				dmg -= Random.NormalIntRange(0, buff(ArcaneArmor.class).level());
+			if (this instanceof Hero && ((Hero)this).heroClass == HeroClass.GUNMAN) {
+				dmg = 0;
+			} else {
+				dmg -= AntiMagic.drRoll(this, glyphLevel(AntiMagic.class));
+				if (buff(ArcaneArmor.class) != null) {
+					dmg -= Random.NormalIntRange(0, buff(ArcaneArmor.class).level());
+				}
+				if (dmg < 0) dmg = 0;
 			}
-			if (dmg < 0) dmg = 0;
 		}
 		
 		if (buff( Paralysis.class ) != null) {
@@ -1378,6 +1383,21 @@ public abstract class Char extends Actor {
 	protected final HashSet<Class> immunities = new HashSet<>();
 	
 	public boolean isImmune(Class effect ){
+		if (this instanceof Hero && ((Hero)this).heroClass == HeroClass.GUNMAN) {
+			if (AntiMagic.RESISTS.contains(effect)
+					|| MagicalSleep.class.isAssignableFrom(effect)
+					|| Charm.class.isAssignableFrom(effect)
+					|| Weakness.class.isAssignableFrom(effect)
+					|| Vulnerable.class.isAssignableFrom(effect)
+					|| Hex.class.isAssignableFrom(effect)
+					|| Degrade.class.isAssignableFrom(effect)
+					|| Corruption.class.isAssignableFrom(effect)
+					|| Dread.class.isAssignableFrom(effect)
+					|| Doom.class.isAssignableFrom(effect)) {
+				return true;
+			}
+		}
+
 		HashSet<Class> immunes = new HashSet<>(immunities);
 		for (Property p : properties()){
 			immunes.addAll(p.immunities());

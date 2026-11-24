@@ -68,6 +68,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRage;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Gun;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Cudgel;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Dagger;
@@ -89,7 +90,8 @@ public enum HeroClass {
 	ROGUE( HeroSubClass.ASSASSIN, HeroSubClass.FREERUNNER ),
 	HUNTRESS( HeroSubClass.SNIPER, HeroSubClass.WARDEN ),
 	DUELIST( HeroSubClass.CHAMPION, HeroSubClass.MONK ),
-	CLERIC( HeroSubClass.PRIEST, HeroSubClass.PALADIN );
+	CLERIC( HeroSubClass.PRIEST, HeroSubClass.PALADIN ),
+	GUNMAN( HeroSubClass.GUNSLINGER, HeroSubClass.SHARPSHOOTER );
 
 	private HeroSubClass[] subClasses;
 
@@ -137,6 +139,10 @@ public enum HeroClass {
 			case CLERIC:
 				initCleric( hero );
 				break;
+
+			case GUNMAN:
+				initGunman( hero );
+				break;
 		}
 	}
 
@@ -154,6 +160,8 @@ public enum HeroClass {
 				return Badges.Badge.MASTERY_DUELIST;
 			case CLERIC:
 				return Badges.Badge.MASTERY_CLERIC;
+			case GUNMAN:
+				return Badges.Badge.MASTERY_GUNMAN;
 		}
 		return null;
 	}
@@ -247,6 +255,19 @@ public enum HeroClass {
 		new ScrollOfRemoveCurse().identify();
 	}
 
+	private static void initGunman( Hero hero ) {
+
+		(hero.belongings.weapon = new Dagger()).identify();
+
+		Gun gun = new Gun();
+		gun.identify().collect();
+
+		Dungeon.quickslot.setSlot(0, gun);
+
+		new PotionOfHealing().identify();
+		new ScrollOfUpgrade().identify();
+	}
+
 	public String title() {
 		return Messages.get(HeroClass.class, name());
 	}
@@ -277,6 +298,8 @@ public enum HeroClass {
 				return new ArmorAbility[]{new Challenge(), new ElementalStrike(), new Feint()};
 			case CLERIC:
 				return new ArmorAbility[]{new AscendedForm(), new Trinity(), new PowerOfMany()};
+			case GUNMAN:
+				return new ArmorAbility[]{new SmokeBomb(), new Feint(), new Endure()};
 		}
 	}
 
@@ -294,6 +317,8 @@ public enum HeroClass {
 				return Assets.Sprites.DUELIST;
 			case CLERIC:
 				return Assets.Sprites.CLERIC;
+			case GUNMAN:
+				return Assets.Sprites.ROGUE;
 		}
 	}
 
@@ -311,6 +336,8 @@ public enum HeroClass {
 				return Assets.Splashes.DUELIST;
 			case CLERIC:
 				return Assets.Splashes.CLERIC;
+			case GUNMAN:
+				return Assets.Splashes.ROGUE;
 		}
 	}
 	
@@ -331,6 +358,8 @@ public enum HeroClass {
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_DUELIST);
 			case CLERIC:
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_CLERIC);
+			case GUNMAN:
+				return true;
 		}
 	}
 	

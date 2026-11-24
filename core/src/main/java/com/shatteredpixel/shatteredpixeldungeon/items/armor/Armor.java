@@ -479,7 +479,7 @@ public class Armor extends EquipableItem {
 	
 	public int proc( Char attacker, Char defender, int damage ) {
 
-		if (defender.buff(MagicImmune.class) == null) {
+		if (defender.buff(MagicImmune.class) == null && !(defender instanceof Hero && ((Hero)defender).heroClass == HeroClass.GUNMAN)) {
 			Glyph trinityGlyph = null;
 			//only when it's the hero or a char that uses the hero's armor
 			if (Dungeon.hero.buff(BodyForm.BodyFormBuff.class) != null

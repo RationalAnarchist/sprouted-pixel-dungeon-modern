@@ -118,6 +118,11 @@ public abstract class Wand extends Item {
 		super.execute( hero, action );
 
 		if (action.equals( AC_ZAP )) {
+
+			if (hero.heroClass == HeroClass.GUNMAN) {
+				GLog.w( Messages.get(Wand.class, "gunman_no_magic") );
+				return;
+			}
 			
 			curUser = hero;
 			curItem = this;

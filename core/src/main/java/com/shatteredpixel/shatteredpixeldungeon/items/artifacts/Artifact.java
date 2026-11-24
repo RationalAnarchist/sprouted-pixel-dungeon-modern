@@ -61,8 +61,19 @@ public class Artifact extends KindofMisc {
 	//used by some artifacts to keep track of duration of effects or cooldowns to use.
 	protected int cooldown = 0;
 
+	public boolean isAllowedForGunman() {
+		return this instanceof MasterThievesArmband
+				|| this instanceof AlchemistsToolkit
+				|| this instanceof TimekeepersHourglass;
+	}
+
 	@Override
 	public boolean doEquip( final Hero hero ) {
+
+		if (hero.heroClass == HeroClass.GUNMAN && !isAllowedForGunman()){
+			GLog.w( Messages.get(Artifact.class, "gunman_no_artifact") );
+			return false;
+		}
 
 		if ((hero.belongings.artifact != null && hero.belongings.artifact.getClass() == this.getClass())
 				|| (hero.belongings.misc != null && hero.belongings.misc.getClass() == this.getClass())){

@@ -479,6 +479,8 @@ public enum Icons {
 				return new ItemSprite(ItemSpriteSheet.RAPIER);
 			case CLERIC:
 				return new ItemSprite(ItemSpriteSheet.ARTIFACT_TOME);
+			case GUNMAN:
+				return new ItemSprite(ItemSpriteSheet.CROSSBOW);
 			default:
 				return null;
 		}
