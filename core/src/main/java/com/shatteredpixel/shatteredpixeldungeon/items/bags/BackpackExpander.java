@@ -58,11 +58,27 @@ public class BackpackExpander extends Item {
 
 	public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe.SimpleRecipe {
 		{
-			inputs = new Class[]{Alchemize.class};
-			inQuantity = new int[]{1};
+			inputs = new Class[]{};
+			inQuantity = new int[]{};
 			cost = 6;
 			output = BackpackExpander.class;
 			outQuantity = 1;
+		}
+
+		@Override
+		public boolean testIngredients(ArrayList<Item> ingredients) {
+			if (ingredients.isEmpty()) return true;
+			if (ingredients.size() == 1 && ingredients.get(0) instanceof Alchemize) return true;
+			return false;
+		}
+
+		@Override
+		public Item brew(ArrayList<Item> ingredients) {
+			if (!testIngredients(ingredients)) return null;
+			if (!ingredients.isEmpty()) {
+				ingredients.get(0).quantity(ingredients.get(0).quantity() - 1);
+			}
+			return sampleOutput(ingredients);
 		}
 	}
 }

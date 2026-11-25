@@ -180,20 +180,27 @@ public class QuickRecipe extends Component {
 		height = 16;
 		width = 0;
 
-		int padding = inputs.size() == 1 ? 8 : 0;
+		int padding = inputs.size() <= 1 ? 8 : 0;
 
-		for (ItemSlot item : inputs){
-			item.setRect(x + width + padding, y, 16, 16);
+		if (inputs.isEmpty()) {
+			arrow.setRect(x + padding, y, 14, 16);
+			width += 14 + padding;
+			output.setRect(x + width, y, 16, 16);
 			width += 16 + padding;
-		}
-		
-		arrow.setRect(x + width, y, 14, 16);
-		width += 14;
-		
-		output.setRect(x + width, y, 16, 16);
-		width += 16;
+		} else {
+			for (ItemSlot item : inputs){
+				item.setRect(x + width + padding, y, 16, 16);
+				width += 16 + padding;
+			}
+			
+			arrow.setRect(x + width, y, 14, 16);
+			width += 14;
+			
+			output.setRect(x + width, y, 16, 16);
+			width += 16;
 
-		width += padding;
+			width += padding;
+		}
 	}
 	
 	//used to ensure that un-IDed items are not spoiled

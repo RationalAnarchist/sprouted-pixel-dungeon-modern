@@ -172,6 +172,10 @@ public abstract class Recipe {
 	private static Recipe[] variableRecipes = new Recipe[]{
 			//none for now
 	};
+
+	private static Recipe[] zeroIngredientRecipes = new Recipe[]{
+		new BackpackExpander.Recipe()
+	};
 	
 	private static Recipe[] oneIngredientRecipes = new Recipe[]{
 		new Scroll.ScrollToStone(),
@@ -197,14 +201,14 @@ public abstract class Recipe {
 		new StewedMeat.oneMeat(),
 		new TrinketCatalyst.Recipe(),
 		new TrinketCatalyst.RecycleRecipe(),
-		new Trinket.UpgradeTrinket()
+		new Trinket.UpgradeTrinket(),
+		new BreachingPowder.Recipe(),
+		new BackpackExpander.Recipe()
 	};
 	
 	private static Recipe[] twoIngredientRecipes = new Recipe[]{
 		new Blandfruit.CookFruit(),
 		new Bomb.EnhanceBomb(),
-		new BackpackExpander.Recipe(),
-		new BreachingPowder.Recipe(),
 		new UnstableBrew.Recipe(),
 		new CausticBrew.Recipe(),
 		new ElixirOfArcaneArmor.Recipe(),
@@ -234,7 +238,13 @@ public abstract class Recipe {
 			}
 		}
 
-		if (ingredients.size() == 1){
+		if (ingredients.size() == 0){
+			for (Recipe recipe : zeroIngredientRecipes){
+				if (recipe.testIngredients(ingredients)){
+					result.add(recipe);
+				}
+			}
+		} else if (ingredients.size() == 1){
 			for (Recipe recipe : oneIngredientRecipes){
 				if (recipe.testIngredients(ingredients)){
 					result.add(recipe);

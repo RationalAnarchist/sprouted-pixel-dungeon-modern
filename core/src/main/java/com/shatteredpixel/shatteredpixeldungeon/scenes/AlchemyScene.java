@@ -36,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.LiquidMetal;
 import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.AlchemistsToolkit;
+import com.shatteredpixel.shatteredpixeldungeon.items.bags.BackpackExpander;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
@@ -538,6 +539,8 @@ public class AlchemyScene extends PixelScene {
 			addToFront(new TrinketCatalyst.WndTrinket(cata));
 		}
 
+		updateState();
+
 		fadeIn();
 
 		saveNeeded = false;
@@ -660,7 +663,7 @@ public class AlchemyScene extends PixelScene {
 			combines[i].setRect(combines[0].left(), outputs[i].top()+5, 30, 20);
 			combines[i].enable(cost <= availableEnergy, cost);
 
-			if (cost > availableEnergy && recipe instanceof TrinketCatalyst.Recipe){
+			if (cost > availableEnergy && (recipe instanceof TrinketCatalyst.Recipe || recipe instanceof BackpackExpander.Recipe)){
 				promptToAddEnergy = true;
 			}
 
@@ -677,15 +680,14 @@ public class AlchemyScene extends PixelScene {
 	private void combine( int slot ){
 		
 		ArrayList<Item> ingredients = filterInput(Item.class);
-		if (ingredients.isEmpty()) return;
+
+		ArrayList<Recipe> recipes = Recipe.findRecipes(ingredients);
+		if (recipes.size() <= slot) return;
 
 		lastIngredients.clear();
 		for (Item i : ingredients){
 			lastIngredients.add(i.duplicate());
 		}
-
-		ArrayList<Recipe> recipes = Recipe.findRecipes(ingredients);
-		if (recipes.size() <= slot) return;
 
 		Recipe recipe = recipes.get(slot);
 		
