@@ -34,7 +34,7 @@ public class BackpackExpander extends Item {
 	@Override
 	public void execute(Hero hero, String action) {
 		super.execute(hero, action);
-		if (action.equals(AC_APPLY)) {
+		if (action.equals(AC_APPLY) || action.equals("USE")) {
 			hero.belongings.extraBagCapacity += 4;
 			detach(hero.belongings.backpack);
 			hero.sprite.operate(hero.pos);

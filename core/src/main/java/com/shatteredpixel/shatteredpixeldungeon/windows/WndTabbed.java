@@ -118,6 +118,7 @@ public class WndTabbed extends Window {
 		camera.x = (int)(Game.width - camera.screenWidth()) / 2;
 		camera.y = (int)(Game.height - camera.screenHeight()) / 2;
 		camera.y += yOffset * camera.zoom;
+		if (camera.y < 0) camera.y = 0;
 
 		shadow.boxRect(
 				camera.x / camera.zoom,

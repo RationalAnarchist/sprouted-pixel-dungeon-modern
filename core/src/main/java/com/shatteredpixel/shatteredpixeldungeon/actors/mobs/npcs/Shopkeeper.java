@@ -314,7 +314,11 @@ public class Shopkeeper extends NPC {
 		}
 		switch (Dungeon.depth){
 			case 6: default:
-				return Messages.get(this, "talk_prison_intro") + "\n\n" + Messages.get(this, "talk_prison_" + Dungeon.hero.heroClass.name());
+				String classTalk = Messages.get(this, "talk_prison_" + Dungeon.hero.heroClass.name());
+				if (classTalk.equals(Messages.NO_TEXT_FOUND)){
+					classTalk = Messages.get(this, "talk_prison_rogue");
+				}
+				return Messages.get(this, "talk_prison_intro") + "\n\n" + classTalk;
 			case 11:
 				return Messages.get(this, "talk_caves");
 			case 16:
