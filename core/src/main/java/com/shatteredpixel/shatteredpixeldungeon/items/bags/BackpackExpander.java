@@ -5,7 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.spells.Alchemize;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -34,6 +34,10 @@ public class BackpackExpander extends Item {
 	@Override
 	public void execute(Hero hero, String action) {
 		if (action.equals(AC_APPLY)) {
+			if (hero.belongings.extraBagCapacity >= 24) {
+				GLog.w(Messages.get(BackpackExpander.class, "max_capacity"));
+				return;
+			}
 			hero.belongings.extraBagCapacity += 6;
 			detach(hero.belongings.backpack);
 			hero.sprite.operate(hero.pos);
@@ -58,8 +62,8 @@ public class BackpackExpander extends Item {
 
 	public static class Recipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe.SimpleRecipe {
 		{
-			inputs = new Class[]{};
-			inQuantity = new int[]{};
+			inputs = new Class[]{ScrollOfTeleportation.class};
+			inQuantity = new int[]{1};
 			cost = 6;
 			output = BackpackExpander.class;
 			outQuantity = 1;
@@ -67,17 +71,13 @@ public class BackpackExpander extends Item {
 
 		@Override
 		public boolean testIngredients(ArrayList<Item> ingredients) {
-			if (ingredients.isEmpty()) return true;
-			if (ingredients.size() == 1 && ingredients.get(0) instanceof Alchemize) return true;
-			return false;
+			return ingredients.size() == 1 && ingredients.get(0) instanceof ScrollOfTeleportation && ingredients.get(0).quantity() >= 1;
 		}
 
 		@Override
 		public Item brew(ArrayList<Item> ingredients) {
 			if (!testIngredients(ingredients)) return null;
-			if (!ingredients.isEmpty()) {
-				ingredients.get(0).quantity(ingredients.get(0).quantity() - 1);
-			}
+			ingredients.get(0).quantity(ingredients.get(0).quantity() - 1);
 			return sampleOutput(ingredients);
 		}
 	}

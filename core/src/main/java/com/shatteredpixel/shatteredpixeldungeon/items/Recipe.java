@@ -172,10 +172,6 @@ public abstract class Recipe {
 	private static Recipe[] variableRecipes = new Recipe[]{
 			//none for now
 	};
-
-	private static Recipe[] zeroIngredientRecipes = new Recipe[]{
-		new BackpackExpander.Recipe()
-	};
 	
 	private static Recipe[] oneIngredientRecipes = new Recipe[]{
 		new Scroll.ScrollToStone(),
@@ -238,13 +234,7 @@ public abstract class Recipe {
 			}
 		}
 
-		if (ingredients.size() == 0){
-			for (Recipe recipe : zeroIngredientRecipes){
-				if (recipe.testIngredients(ingredients)){
-					result.add(recipe);
-				}
-			}
-		} else if (ingredients.size() == 1){
+		if (ingredients.size() == 1){
 			for (Recipe recipe : oneIngredientRecipes){
 				if (recipe.testIngredients(ingredients)){
 					result.add(recipe);

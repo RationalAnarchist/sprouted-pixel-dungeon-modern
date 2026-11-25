@@ -41,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.InventorySlot;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RightClickMenu;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.input.GameAction;
 import com.watabou.input.KeyBindings;
@@ -49,6 +50,8 @@ import com.watabou.input.PointerEvent;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
+import com.watabou.noosa.PointerArea;
+import com.watabou.noosa.ui.Component;
 import com.watabou.utils.PointF;
 
 public class WndBag extends WndTabbed {
@@ -81,6 +84,9 @@ public class WndBag extends WndTabbed {
 	protected int col;
 	protected int row;
 	
+	private ScrollPane scroll;
+	private Component grid;
+
 	private static Bag lastBag;
 
 	public WndBag( Bag bag ) {
@@ -129,9 +135,40 @@ public class WndBag extends WndTabbed {
 			}
 		}
 
+		int fullGridHeight = slotHeight * nRows + SLOT_MARGIN * (nRows - 1);
+		int idealWindowHeight = TITLE_HEIGHT + fullGridHeight;
+
+		int maxCameraHeight = PixelScene.uiCamera.height;
+		int chromeOverhead = chrome.marginTop() + tabHeight() + 16;
+		int maxWindowHeight = maxCameraHeight - chromeOverhead;
+
+		boolean scrolling = idealWindowHeight > maxWindowHeight;
+		int visibleGridHeight;
+
+		if (scrolling) {
+			int availableForGrid = maxWindowHeight - TITLE_HEIGHT;
+			int visibleRows = (availableForGrid + SLOT_MARGIN) / (slotHeight + SLOT_MARGIN);
+			if (visibleRows < 2) visibleRows = 2;
+			if (visibleRows > nRows) visibleRows = nRows;
+			visibleGridHeight = visibleRows * slotHeight + (visibleRows - 1) * SLOT_MARGIN;
+			windowHeight = TITLE_HEIGHT + visibleGridHeight;
+
+			grid = new Component();
+			grid.setSize(windowWidth, fullGridHeight);
+			scroll = new ScrollPane(grid);
+		} else {
+			visibleGridHeight = fullGridHeight;
+			windowHeight = idealWindowHeight;
+		}
+
 		placeTitle( bag, windowWidth );
 		
 		placeItems( bag );
+
+		if (scroll != null) {
+			scroll.setRect(0, TITLE_HEIGHT, windowWidth, visibleGridHeight);
+			add(scroll);
+		}
 
 		resize( windowWidth, windowHeight );
 
@@ -290,9 +327,13 @@ public class WndBag extends WndTabbed {
 		count++;
 		
 		int x = col * (slotWidth + SLOT_MARGIN);
-		int y = TITLE_HEIGHT + row * (slotHeight + SLOT_MARGIN);
+		int y = (scroll != null ? 0 : TITLE_HEIGHT) + row * (slotHeight + SLOT_MARGIN);
 
 		InventorySlot slot = new InventorySlot( item ){
+			{
+				hotArea.blockLevel = PointerArea.NEVER_BLOCK;
+			}
+
 			@Override
 			protected void onClick() {
 				if (lastBag != item && !lastBag.contains(item) && !item.isEquipped(Dungeon.hero)){
@@ -334,10 +375,10 @@ public class WndBag extends WndTabbed {
 							WndBag.this.hide();
 						}
 					};
-					parent.addToFront(r);
-					r.camera = camera();
+					WndBag.this.parent.addToFront(r);
+					r.camera = WndBag.this.camera();
 					PointF mousePos = PointerEvent.currentHoverPos();
-					mousePos = camera.screenToCamera((int)mousePos.x, (int)mousePos.y);
+					mousePos = r.camera.screenToCamera((int)mousePos.x, (int)mousePos.y);
 					r.setPos(mousePos.x-3, mousePos.y-3);
 
 				}
@@ -358,7 +399,11 @@ public class WndBag extends WndTabbed {
 			}
 		};
 		slot.setRect( x, y, slotWidth, slotHeight );
-		add(slot);
+		if (grid != null) {
+			grid.add(slot);
+		} else {
+			add(slot);
+		}
 
 		if (item == null || (selector != null && !selector.itemSelectable(item))){
 			slot.enable(false);
