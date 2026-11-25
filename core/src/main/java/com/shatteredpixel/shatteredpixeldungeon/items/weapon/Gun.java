@@ -31,9 +31,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Chill;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Sleep;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SmokeParticle;
@@ -222,10 +225,11 @@ public class Gun extends Weapon {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
-		// Hitscan visual effects
+		// Hitscan visual effects & gunshot noise
 		if (attacker != null) {
 			CellEmitter.center(attacker.pos).burst(SparkParticle.FACTORY, 4);
 			CellEmitter.center(attacker.pos).burst(SmokeParticle.FACTORY, 2);
+			alertFromGunshot(attacker.pos);
 		}
 		Sample.INSTANCE.play(Assets.Sounds.BLAST, 1f, Random.Float(0.95f, 1.05f));
 
@@ -353,6 +357,7 @@ public class Gun extends Weapon {
 					CellEmitter.center(hitCell).burst(SparkParticle.FACTORY, 4);
 					CellEmitter.center(hitCell).burst(SmokeParticle.FACTORY, 2);
 					Dungeon.level.pressCell(hitCell);
+					alertFromGunshot(curUser.pos);
 					curUser.spendAndNext(delayFactor(curUser));
 				}
 			}
@@ -363,4 +368,47 @@ public class Gun extends Weapon {
 			return Messages.get(Gun.class, "prompt");
 		}
 	};
+
+	public static void alertFromGunshot(int shooterPos) {
+		if (Dungeon.level == null) return;
+
+		// Soundwave visual effect
+		CellEmitter.center(shooterPos).start(Speck.factory(Speck.SCREAM), 0.3f, 3);
+
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (mob == null || !mob.isAlive()) continue;
+
+			// Friendly allies or passive NPCs shouldn't be alarmed
+			if (mob.alignment != Char.Alignment.ENEMY || mob.state == mob.PASSIVE) {
+				continue;
+			}
+
+			// Check line of sight
+			boolean inLOS = false;
+			if (Dungeon.level.heroFOV != null && Dungeon.hero != null && Dungeon.hero.pos == shooterPos) {
+				inLOS = Dungeon.level.heroFOV[mob.pos];
+			}
+			if (!inLOS) {
+				Ballistica los = new Ballistica(shooterPos, mob.pos, Ballistica.PROJECTILE);
+				inLOS = (los.collisionPos == mob.pos);
+			}
+
+			if (inLOS) {
+				// Wakes sleeping monsters in line of sight
+				if (mob.state == mob.SLEEPING || mob.buff(Sleep.class) != null) {
+					Buff.detach(mob, Sleep.class);
+					mob.beckon(shooterPos);
+				} else if (mob.state != mob.FLEEING) {
+					mob.beckon(shooterPos);
+				}
+			} else {
+				// Attracts nearby monsters (within hearing distance of 10 tiles)
+				if (Dungeon.level.distance(shooterPos, mob.pos) <= 10) {
+					if (mob.state != mob.HUNTING && mob.state != mob.FLEEING) {
+						mob.beckon(shooterPos);
+					}
+				}
+			}
+		}
+	}
 }

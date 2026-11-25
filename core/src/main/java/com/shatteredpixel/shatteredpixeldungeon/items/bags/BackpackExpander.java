@@ -33,6 +33,7 @@ public class BackpackExpander extends Item {
 
 	@Override
 	public void execute(Hero hero, String action) {
+		super.execute(hero, action);
 		if (action.equals(AC_APPLY)) {
 			hero.belongings.extraBagCapacity += 4;
 			detach(hero.belongings.backpack);
@@ -40,9 +41,8 @@ public class BackpackExpander extends Item {
 			Sample.INSTANCE.play(Assets.Sounds.ITEM);
 			hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, "+4 SLOTS", FloatingText.ENERGY);
 			GLog.p(Messages.get(BackpackExpander.class, "expanded"));
-			hero.spendAndNext(Actor.TICK);
-		} else {
-			super.execute(hero, action);
+			hero.spend(Actor.TICK);
+			hero.busy();
 		}
 	}
 
