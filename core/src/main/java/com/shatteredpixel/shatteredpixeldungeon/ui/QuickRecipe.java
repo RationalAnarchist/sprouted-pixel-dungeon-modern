@@ -91,6 +91,7 @@ import java.util.Arrays;
 
 public class QuickRecipe extends Component {
 	
+	private Recipe recipe;
 	private ArrayList<Item> ingredients;
 	
 	private ArrayList<ItemSlot> inputs;
@@ -103,6 +104,7 @@ public class QuickRecipe extends Component {
 	
 	public QuickRecipe(Recipe r, ArrayList<Item> inputs, final Item output) {
 		
+		this.recipe = r;
 		ingredients = inputs;
 		int cost = r.cost(inputs);
 		boolean hasInputs = true;
@@ -265,7 +267,7 @@ public class QuickRecipe extends Component {
 				}
 			}
 			
-			((AlchemyScene)ShatteredPixelDungeon.scene()).populate(ingredients, Dungeon.hero.belongings);
+			((AlchemyScene)ShatteredPixelDungeon.scene()).populate(recipe, ingredients, Dungeon.hero.belongings);
 		}
 		
 		public void hardlightText(int color ){

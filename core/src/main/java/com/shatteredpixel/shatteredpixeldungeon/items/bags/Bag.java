@@ -53,7 +53,7 @@ public class Bag extends Item implements Iterable<Item> {
 
 	public int capacity(){
 		int extra = (Dungeon.hero != null && Dungeon.hero.belongings != null) ? Dungeon.hero.belongings.extraBagCapacity : 0;
-		return 24 + extra;
+		return 30 + extra;
 	}
 
 	//if an item is being quick-used from the bag, the bag should take on its targeting properties

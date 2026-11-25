@@ -94,6 +94,9 @@ public class AlchemyScene extends PixelScene {
 
 	private IconButton cancel;
 	private IconButton repeat;
+	private IconButton prevPage;
+	private IconButton nextPage;
+	private static int recipePage = 0;
 	private static ArrayList<Item> lastIngredients = new ArrayList<>();
 	private static Recipe lastRecipe = null;
 
@@ -362,7 +365,7 @@ public class AlchemyScene extends PixelScene {
 			protected void onClick() {
 				super.onClick();
 				if (lastRecipe != null){
-					populate(lastIngredients, Dungeon.hero.belongings);
+					populate(lastRecipe, lastIngredients, Dungeon.hero.belongings);
 				}
 			}
 
@@ -402,6 +405,42 @@ public class AlchemyScene extends PixelScene {
 			add(combines[i]);
 			add(outputs[i]);
 		}
+
+		prevPage = new IconButton(Icons.LEFTARROW.get()){
+			@Override
+			protected void onClick() {
+				super.onClick();
+				if (recipePage > 0) {
+					recipePage--;
+					updateState();
+				}
+			}
+
+			@Override
+			protected String hoverText() {
+				return "";
+			}
+		};
+		prevPage.setRect(outputs[0].left(), pos + 2, 14, 16);
+		prevPage.visible = false;
+		add(prevPage);
+
+		nextPage = new IconButton(Icons.RIGHTARROW.get()){
+			@Override
+			protected void onClick() {
+				super.onClick();
+				recipePage++;
+				updateState();
+			}
+
+			@Override
+			protected String hoverText() {
+				return "";
+			}
+		};
+		nextPage.setRect(outputs[0].left() + 14, pos + 2, 14, 16);
+		nextPage.visible = false;
+		add(nextPage);
 
 		smokeEmitter = new Emitter();
 		smokeEmitter.pos(outputs[0].left() + (BTN_SIZE-16)/2f, outputs[0].top() + (BTN_SIZE-16)/2f, 16, 16);
@@ -614,14 +653,25 @@ public class AlchemyScene extends PixelScene {
 		ArrayList<Item> ingredients = filterInput(Item.class);
 		ArrayList<Recipe> recipes = Recipe.findRecipes(ingredients);
 
-		//disables / hides unneeded buttons
-		for (int i = recipes.size(); i < combines.length; i++){
-			combines[i].enable(false);
-			outputs[i].item(null);
+		int totalRecipes = recipes.size();
+		int numPages = (totalRecipes + 2) / 3;
+		if (numPages <= 1) {
+			recipePage = 0;
+		} else if (recipePage >= numPages) {
+			recipePage = numPages - 1;
+		} else if (recipePage < 0) {
+			recipePage = 0;
+		}
 
-			if (i != 0){
-				combines[i].visible = false;
-				outputs[i].visible = false;
+		if (prevPage != null && nextPage != null){
+			if (numPages > 1) {
+				prevPage.visible = true;
+				nextPage.visible = true;
+				prevPage.enable(recipePage > 0);
+				nextPage.enable(recipePage < numPages - 1);
+			} else {
+				prevPage.visible = false;
+				nextPage.visible = false;
 			}
 		}
 
@@ -630,43 +680,60 @@ public class AlchemyScene extends PixelScene {
 		if (recipes.isEmpty()){
 			combines[0].setPos(combines[0].left(), inputs[1].top()+5);
 			outputs[0].setPos(outputs[0].left(), inputs[1].top());
+			for (int i = 0; i < combines.length; i++){
+				combines[i].enable(false);
+				outputs[i].item(null);
+				if (i != 0){
+					combines[i].visible = false;
+					outputs[i].visible = false;
+				}
+			}
 			energyAddBlinking = false;
 			return;
 		}
 
+		int startIdx = recipePage * 3;
+		int recipesOnPage = Math.min(3, totalRecipes - startIdx);
+
 		//positions active buttons
-		float gap = recipes.size() == 2 ? 6 : 2;
+		float gap = recipesOnPage == 2 ? 6 : 2;
 
 		float height = inputs[2].bottom() - inputs[0].top();
-		height -= recipes.size()*BTN_SIZE + (recipes.size()-1)*gap;
+		height -= recipesOnPage*BTN_SIZE + (recipesOnPage-1)*gap;
 		float top = inputs[0].top() + height/2;
 
 		//positions and enables active buttons
 		boolean promptToAddEnergy = false;
-		for (int i = 0; i < recipes.size(); i++){
+		for (int i = 0; i < combines.length; i++){
+			int recipeIdx = startIdx + i;
+			if (i < recipesOnPage){
+				Recipe recipe = recipes.get(recipeIdx);
 
-			Recipe recipe = recipes.get(i);
+				int cost = recipe.cost(ingredients);
 
-			int cost = recipe.cost(ingredients);
+				outputs[i].visible = true;
+				outputs[i].setRect(outputs[0].left(), top, BTN_SIZE, BTN_SIZE);
+				outputs[i].item(recipe.sampleOutput(ingredients));
+				top += BTN_SIZE+gap;
 
-			outputs[i].visible = true;
-			outputs[i].setRect(outputs[0].left(), top, BTN_SIZE, BTN_SIZE);
-			outputs[i].item(recipe.sampleOutput(ingredients));
-			top += BTN_SIZE+gap;
+				int availableEnergy = Dungeon.energy;
+				if (toolkit != null){
+					availableEnergy += toolkit.availableEnergy();
+				}
 
-			int availableEnergy = Dungeon.energy;
-			if (toolkit != null){
-				availableEnergy += toolkit.availableEnergy();
+				combines[i].visible = true;
+				combines[i].setRect(combines[0].left(), outputs[i].top()+5, 30, 20);
+				combines[i].enable(cost <= availableEnergy, cost);
+
+				if (cost > availableEnergy && (recipe instanceof TrinketCatalyst.Recipe || recipe instanceof BackpackExpander.Recipe)){
+					promptToAddEnergy = true;
+				}
+			} else {
+				combines[i].enable(false);
+				outputs[i].item(null);
+				combines[i].visible = false;
+				outputs[i].visible = false;
 			}
-
-			combines[i].visible = true;
-			combines[i].setRect(combines[0].left(), outputs[i].top()+5, 30, 20);
-			combines[i].enable(cost <= availableEnergy, cost);
-
-			if (cost > availableEnergy && (recipe instanceof TrinketCatalyst.Recipe || recipe instanceof BackpackExpander.Recipe)){
-				promptToAddEnergy = true;
-			}
-
 		}
 
 		energyAddBlinking = promptToAddEnergy;
@@ -682,14 +749,15 @@ public class AlchemyScene extends PixelScene {
 		ArrayList<Item> ingredients = filterInput(Item.class);
 
 		ArrayList<Recipe> recipes = Recipe.findRecipes(ingredients);
-		if (recipes.size() <= slot) return;
+		int actualSlot = recipePage * 3 + slot;
+		if (recipes.size() <= actualSlot) return;
 
 		lastIngredients.clear();
 		for (Item i : ingredients){
 			lastIngredients.add(i.duplicate());
 		}
 
-		Recipe recipe = recipes.get(slot);
+		Recipe recipe = recipes.get(actualSlot);
 		
 		Item result = null;
 		
@@ -795,6 +863,10 @@ public class AlchemyScene extends PixelScene {
 	}
 	
 	public void populate(ArrayList<Item> toFind, Belongings inventory){
+		populate(null, toFind, inventory);
+	}
+
+	public void populate(Recipe targetRecipe, ArrayList<Item> toFind, Belongings inventory){
 		clearSlots();
 		
 		int curslot = 0;
@@ -816,6 +888,19 @@ public class AlchemyScene extends PixelScene {
 				}
 			}
 		}
+
+		recipePage = 0;
+		if (targetRecipe != null) {
+			ArrayList<Item> ingredients = filterInput(Item.class);
+			ArrayList<Recipe> recipes = Recipe.findRecipes(ingredients);
+			for (int i = 0; i < recipes.size(); i++){
+				if (recipes.get(i).getClass() == targetRecipe.getClass()){
+					recipePage = i / 3;
+					break;
+				}
+			}
+		}
+
 		updateState();
 	}
 
@@ -839,6 +924,7 @@ public class AlchemyScene extends PixelScene {
 
 	@Override
 	public void destroy() {
+		recipePage = 0;
 		synchronized ( inputs ) {
 			clearSlots();
 			for (int i = 0; i < inputs.length; i++) {
@@ -858,6 +944,7 @@ public class AlchemyScene extends PixelScene {
 	}
 	
 	public void clearSlots(){
+		recipePage = 0;
 		synchronized ( inputs ) {
 			for (int i = 0; i < inputs.length; i++) {
 				if (inputs[i] != null && inputs[i].item() != null) {

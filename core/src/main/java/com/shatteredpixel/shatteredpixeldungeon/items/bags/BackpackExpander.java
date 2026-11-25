@@ -64,17 +64,5 @@ public class BackpackExpander extends Item {
 			output = BackpackExpander.class;
 			outQuantity = 1;
 		}
-
-		@Override
-		public boolean testIngredients(ArrayList<Item> ingredients) {
-			return ingredients.size() == 1 && ingredients.get(0) instanceof ScrollOfTeleportation && ingredients.get(0).quantity() >= 1;
-		}
-
-		@Override
-		public Item brew(ArrayList<Item> ingredients) {
-			if (!testIngredients(ingredients)) return null;
-			ingredients.get(0).quantity(ingredients.get(0).quantity() - 1);
-			return sampleOutput(ingredients);
-		}
 	}
 }
