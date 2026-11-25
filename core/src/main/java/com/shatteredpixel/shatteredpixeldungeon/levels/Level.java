@@ -1286,6 +1286,9 @@ public abstract class Level implements Bundlable {
 				timeFreeze.setDelayedPress(cell);
 				
 			} else {
+				if (Dungeon.hero != null && Dungeon.hero.pos == cell && com.shatteredpixel.shatteredpixeldungeon.items.gadgets.SappersSensor.deflectTrap(Dungeon.hero, trap, cell)) {
+					return;
+				}
 				if (Dungeon.hero.pos == cell) {
 					Dungeon.hero.interrupt();
 				}

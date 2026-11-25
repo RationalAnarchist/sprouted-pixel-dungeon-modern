@@ -64,7 +64,9 @@ public class Artifact extends KindofMisc {
 	public boolean isAllowedForGunman() {
 		return this instanceof MasterThievesArmband
 				|| this instanceof AlchemistsToolkit
-				|| this instanceof TimekeepersHourglass;
+				|| this instanceof ChaliceOfBlood
+				|| this instanceof SkeletonKey
+				|| this instanceof EtherealChains;
 	}
 
 	@Override

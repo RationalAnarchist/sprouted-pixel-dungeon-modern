@@ -301,7 +301,10 @@ public class ItemSpriteSheet {
 		assignItemRect(WAR_SCYTHE,  14, 15);
 	}
 
-	                                                                                    //8 free slots
+	public static final int REVOLVER        = xy(8, 9);
+	static {
+		assignItemRect(REVOLVER,    15, 14);
+	}
 
 	private static final int MISSILE_WEP    =                               xy(1, 10);  //16 slots. 3 per tier + bow
 	public static final int SPIRIT_BOW      = MISSILE_WEP+0;
@@ -395,7 +398,22 @@ public class ItemSpriteSheet {
 		assignItemRect(ARMOR_CLERIC,    13, 14);
 	}
 
-	                                                                                    //16 free slots
+	private static final int GADGETS            =                           xy(1, 13);  //16 slots
+	public static final int GADGET_SENSOR       = GADGETS+0;
+	public static final int GADGET_MONOCLE      = GADGETS+1;
+	public static final int GADGET_DECOY        = GADGETS+2;
+	public static final int GADGET_STIM         = GADGETS+3;
+	public static final int GADGET_IGNITER      = GADGETS+4;
+	public static final int GADGET_PURIFIER     = GADGETS+5;
+	public static final int GADGET_OVERCLOCKER  = GADGETS+6;
+	public static final int GADGET_RESONATOR    = GADGETS+7;
+	public static final int GADGET_EXO_RIG      = GADGETS+8;
+	public static final int GADGET_FLASH_PACK   = GADGETS+9;
+	static {
+		for (int i = GADGETS; i < GADGETS+10; i++) {
+			assignItemRect(i, 16, 16);
+		}
+	}
 
 	private static final int WANDS              =                           xy(1, 14);  //16 slots
 	public static final int WAND_MAGIC_MISSILE  = WANDS+0;

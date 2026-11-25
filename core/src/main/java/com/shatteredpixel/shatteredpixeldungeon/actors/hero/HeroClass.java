@@ -257,15 +257,13 @@ public enum HeroClass {
 
 	private static void initGunman( Hero hero ) {
 
-		(hero.belongings.weapon = new Dagger()).identify();
-
 		Gun gun = new Gun();
-		gun.identify().collect();
+		(hero.belongings.weapon = gun).identify();
+		hero.belongings.weapon.activate(hero);
 
 		Dungeon.quickslot.setSlot(0, gun);
 
 		new PotionOfHealing().identify();
-		new ScrollOfUpgrade().identify();
 	}
 
 	public String title() {
@@ -337,7 +335,7 @@ public enum HeroClass {
 			case CLERIC:
 				return Assets.Splashes.CLERIC;
 			case GUNMAN:
-				return Assets.Splashes.ROGUE;
+				return Assets.Splashes.GUNMAN;
 		}
 	}
 	

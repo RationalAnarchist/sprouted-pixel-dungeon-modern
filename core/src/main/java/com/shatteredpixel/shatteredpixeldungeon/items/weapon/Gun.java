@@ -31,7 +31,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Chill;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
@@ -39,9 +38,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SmokeParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
-import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfSharpshooting;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -58,7 +55,8 @@ public class Gun extends Weapon {
 	public static final String AC_SHOOT = "SHOOT";
 
 	{
-		image = ItemSpriteSheet.CROSSBOW;
+		image = ItemSpriteSheet.REVOLVER;
+		hitSound = Assets.Sounds.BLAST;
 
 		defaultAction = AC_SHOOT;
 		usesTargeting = true;
@@ -70,7 +68,6 @@ public class Gun extends Weapon {
 	@Override
 	public ArrayList<String> actions(Hero hero) {
 		ArrayList<String> actions = super.actions(hero);
-		actions.remove(AC_EQUIP);
 		actions.add(AC_SHOOT);
 		return actions;
 	}
@@ -128,6 +125,26 @@ public class Gun extends Weapon {
 	}
 
 	@Override
+	public boolean canReach(Char owner, int target) {
+		if (owner == null) return false;
+		if (Dungeon.level.adjacent(owner.pos, target)) return true;
+		Ballistica shot = new Ballistica(owner.pos, target, Ballistica.PROJECTILE);
+		return shot.collisionPos == target;
+	}
+
+	@Override
+	public float accuracyFactor(Char owner, Char target) {
+		float acc = super.accuracyFactor(owner, target);
+		if (owner instanceof Hero) {
+			Hero hero = (Hero) owner;
+			if (hero.hasTalent(Talent.CALIBRATED_SIGHTS)) {
+				acc *= (1f + 0.20f * hero.pointsInTalent(Talent.CALIBRATED_SIGHTS));
+			}
+		}
+		return acc;
+	}
+
+	@Override
 	public String info() {
 		String info = super.info();
 
@@ -146,8 +163,6 @@ public class Gun extends Weapon {
 			case NONE:
 		}
 
-		info += "\n\n" + Messages.get(MissileWeapon.class, "distance");
-
 		return info;
 	}
 
@@ -157,28 +172,19 @@ public class Gun extends Weapon {
 
 		if (owner instanceof Hero) {
 			Hero hero = (Hero) owner;
-			// Point blank blast bonus
-			if (hero.hasTalent(Talent.POINT_BLANK_BLAST) && targetPos != -1) {
-				if (Dungeon.level.adjacent(owner.pos, targetPos)) {
+			Char target = hero.attackTarget();
+			if (target != null) {
+				int dist = Dungeon.level.distance(owner.pos, target.pos);
+				if (hero.hasTalent(Talent.POINT_BLANK_BLAST) && dist <= 1) {
 					damage = Math.round(damage * (1f + 0.15f * hero.pointsInTalent(Talent.POINT_BLANK_BLAST)));
 				}
-			}
-
-			// Sharpshooter headshot bonus at long range
-			if (hero.hasTalent(Talent.HEADSHOT) && targetPos != -1) {
-				int dist = Dungeon.level.distance(owner.pos, targetPos);
-				if (dist >= 4) {
+				if (hero.hasTalent(Talent.HEADSHOT) && dist >= 4) {
 					int chance = 15 * hero.pointsInTalent(Talent.HEADSHOT);
 					if (Random.Int(100) < chance) {
 						damage = Math.round(damage * 1.5f);
 					}
 				}
-			}
-
-			// Close Quarters (Gunslinger)
-			if (hero.hasTalent(Talent.CLOSE_QUARTERS) && targetPos != -1) {
-				int dist = Dungeon.level.distance(owner.pos, targetPos);
-				if (dist <= 2) {
+				if (hero.hasTalent(Talent.CLOSE_QUARTERS) && dist <= 2) {
 					damage = Math.round(damage * (1f + 0.15f * hero.pointsInTalent(Talent.CLOSE_QUARTERS)));
 				}
 			}
@@ -214,6 +220,110 @@ public class Gun extends Weapon {
 		return factor;
 	}
 
+	@Override
+	public int proc(Char attacker, Char defender, int damage) {
+		// Hitscan visual effects
+		if (attacker != null) {
+			CellEmitter.center(attacker.pos).burst(SparkParticle.FACTORY, 4);
+			CellEmitter.center(attacker.pos).burst(SmokeParticle.FACTORY, 2);
+		}
+		Sample.INSTANCE.play(Assets.Sounds.BLAST, 1f, Random.Float(0.95f, 1.05f));
+
+		if (defender != null) {
+			CellEmitter.center(defender.pos).burst(SparkParticle.FACTORY, 5);
+			CellEmitter.center(defender.pos).burst(BlastParticle.FACTORY, 2);
+			Splash.at(defender.pos, 0x999999, 2);
+
+			if (attacker instanceof Hero) {
+				Hero hero = (Hero) attacker;
+				applyTalentEffects(hero, defender, defender.pos);
+				if (hero.hasTalent(Talent.FAN_THE_HAMMER)) {
+					Buff.affect(hero, FanTheHammerTracker.class);
+				}
+			}
+		}
+
+		return super.proc(attacker, defender, damage);
+	}
+
+	private void applyTalentEffects(Hero hero, Char enemy, int cell) {
+		if (hero == null || !enemy.isAlive()) return;
+
+		// Point Blank knockback
+		if (hero.hasTalent(Talent.POINT_BLANK_BLAST) && Dungeon.level.adjacent(hero.pos, enemy.pos)) {
+			int dir = enemy.pos - hero.pos;
+			int knockPos = enemy.pos + dir;
+			if (Actor.findChar(knockPos) == null && (Dungeon.level.passable[knockPos] || Dungeon.level.avoid[knockPos])) {
+				Actor.addDelayed(new Actor() {
+					@Override
+					protected boolean act() {
+						if (enemy.isAlive()) {
+							enemy.move(knockPos);
+							enemy.sprite.move(enemy.pos, knockPos);
+						}
+						Actor.remove(this);
+						return true;
+					}
+				}, 0.1f);
+			}
+		}
+
+		// Concussive Shots: chance to cripple
+		if (hero.hasTalent(Talent.CONCUSSIVE_SHOTS)) {
+			int pts = hero.pointsInTalent(Talent.CONCUSSIVE_SHOTS);
+			if (Random.Int(100) < 15 * pts) {
+				Buff.affect(enemy, Cripple.class, 3f * pts);
+			}
+		}
+
+		// Incendiary Ammo
+		if (hero.hasTalent(Talent.INCENDIARY_AMMO)) {
+			int pts = hero.pointsInTalent(Talent.INCENDIARY_AMMO);
+			Buff.affect(enemy, Burning.class).reignite(enemy);
+			enemy.damage(Random.IntRange(1, pts * 3), this);
+		}
+
+		// Cryo Ammo
+		if (hero.hasTalent(Talent.CRYO_AMMO)) {
+			int pts = hero.pointsInTalent(Talent.CRYO_AMMO);
+			Buff.prolong(enemy, Chill.class, 3f * pts);
+			if (pts >= 3 && Random.Int(100) < 30) {
+				Buff.affect(enemy, Frost.class, 2f);
+			}
+		}
+
+		// Shock Rounds: arcs lightning to nearby enemies
+		if (hero.hasTalent(Talent.SHOCK_ROUNDS)) {
+			int pts = hero.pointsInTalent(Talent.SHOCK_ROUNDS);
+			for (int n : PathFinder.NEIGHBOURS8) {
+				int adj = cell + n;
+				Char other = Actor.findChar(adj);
+				if (other != null && other != enemy && other != hero && other.isAlive()) {
+					int arcDmg = Math.round(damageRoll(hero) * (0.25f * pts));
+					other.damage(arcDmg, this);
+					CellEmitter.center(adj).burst(SparkParticle.FACTORY, 4);
+				}
+			}
+		}
+
+		// Sharpshooter Piercing Rounds
+		if (hero.hasTalent(Talent.PIERCING_ROUNDS)) {
+			int pts = hero.pointsInTalent(Talent.PIERCING_ROUNDS);
+			Ballistica trace = new Ballistica(hero.pos, cell, Ballistica.STOP_SOLID);
+			if (trace.path.size() > 0) {
+				int idx = trace.path.indexOf(cell);
+				if (idx != -1 && idx + 1 < trace.path.size()) {
+					int behindCell = trace.path.get(idx + 1);
+					Char behindChar = Actor.findChar(behindCell);
+					if (behindChar != null && behindChar != hero && behindChar.isAlive()) {
+						behindChar.damage(Math.round(damageRoll(hero) * (0.35f * pts)), this);
+						CellEmitter.center(behindCell).burst(SparkParticle.FACTORY, 4);
+					}
+				}
+			}
+		}
+	}
+
 	public static class FanTheHammerTracker extends Buff {
 		{ type = buffType.POSITIVE; }
 		@Override
@@ -223,225 +333,28 @@ public class Gun extends Weapon {
 		}
 	}
 
-	public Bullet knockBullet() {
-		return new Bullet();
-	}
-
-	private int targetPos = -1;
-
-	public class Bullet extends MissileWeapon {
-
-		{
-			image = ItemSpriteSheet.DART;
-			hitSound = Assets.Sounds.BLAST;
-			setID = 0;
-		}
-
-		@Override
-		public ArrayList<String> actions(Hero hero) {
-			return new ArrayList<>();
-		}
-
-		@Override
-		public String defaultAction() {
-			return null;
-		}
-
-		@Override
-		public int defaultQuantity() {
-			return 1;
-		}
-
-		@Override
-		public int damageRoll(Char owner) {
-			return Gun.this.damageRoll(owner);
-		}
-
-		@Override
-		public float delayFactor(Char user) {
-			return Gun.this.delayFactor(user);
-		}
-
-		@Override
-		public float speedMultiplier(Char owner) {
-			return Gun.this.speedMultiplier(owner);
-		}
-
-		@Override
-		public float accuracyFactor(Char owner, Char target) {
-			float acc = super.accuracyFactor(owner, target);
-			if (owner instanceof Hero) {
-				Hero hero = (Hero) owner;
-				if (hero.hasTalent(Talent.CALIBRATED_SIGHTS)) {
-					acc *= (1f + 0.20f * hero.pointsInTalent(Talent.CALIBRATED_SIGHTS));
-				}
-			}
-			return acc;
-		}
-
-		@Override
-		public int STRReq(int lvl) {
-			return Gun.this.STRReq();
-		}
-
-		@Override
-		public void throwSound() {
-			Sample.INSTANCE.play(Assets.Sounds.BLAST, 1f, Random.Float(0.95f, 1.05f));
-		}
-
-		@Override
-		public Item split(int amount) {
-			return null;
-		}
-
-		@Override
-		protected void onThrow(int cell) {
-			Char enemy = Actor.findChar(cell);
-			if (enemy == null || enemy == curUser) {
-				parent = null;
-				CellEmitter.center(cell).burst(SparkParticle.FACTORY, 4);
-				CellEmitter.center(cell).burst(SmokeParticle.FACTORY, 2);
-			} else {
-				CellEmitter.center(cell).burst(SparkParticle.FACTORY, 6);
-				CellEmitter.center(cell).burst(BlastParticle.FACTORY, 2);
-
-				Hero hero = curUser;
-				if (!curUser.shoot(enemy, this)) {
-					Splash.at(cell, 0xCCCCCC, 1);
-					// Ricochet talent on miss
-					if (hero != null && hero.hasTalent(Talent.RICOCHET)) {
-						triggerRicochet(hero, cell, enemy);
-					}
-				} else {
-					// Hit effects & elemental ammo
-					applyAmmoAndTalentEffects(hero, enemy, cell);
-				}
-				if (hero != null && hero.hasTalent(Talent.FAN_THE_HAMMER)) {
-					Buff.affect(hero, FanTheHammerTracker.class);
-				}
-			}
-		}
-
-		private void triggerRicochet(Hero hero, int fromCell, Char originalTarget) {
-			float bounceChance = 0.35f * hero.pointsInTalent(Talent.RICOCHET);
-			if (Random.Float() < bounceChance) {
-				for (int n : PathFinder.NEIGHBOURS8) {
-					int adj = fromCell + n;
-					Char other = Actor.findChar(adj);
-					if (other != null && other != originalTarget && other != hero && other.isAlive()) {
-						int dmg = Math.round(Gun.this.damageRoll(hero) * 0.5f);
-						other.damage(dmg, Gun.this);
-						CellEmitter.center(adj).burst(SparkParticle.FACTORY, 4);
-						break;
-					}
-				}
-			}
-		}
-
-		private void applyAmmoAndTalentEffects(Hero hero, Char enemy, int cell) {
-			if (hero == null || !enemy.isAlive()) return;
-
-			// Point Blank knockback
-			if (hero.hasTalent(Talent.POINT_BLANK_BLAST) && Dungeon.level.adjacent(hero.pos, enemy.pos)) {
-				int dir = enemy.pos - hero.pos;
-				int knockPos = enemy.pos + dir;
-				if (Actor.findChar(knockPos) == null && (Dungeon.level.passable[knockPos] || Dungeon.level.avoid[knockPos])) {
-					Actor.addDelayed(new Actor() {
-						@Override
-						protected boolean act() {
-							if (enemy.isAlive()) {
-								enemy.move(knockPos);
-								enemy.sprite.move(enemy.pos, knockPos);
-							}
-							Actor.remove(this);
-							return true;
-						}
-					}, 0.1f);
-				}
-			}
-
-			// Concussive Shots: chance to cripple or paralyze
-			if (hero.hasTalent(Talent.CONCUSSIVE_SHOTS)) {
-				int pts = hero.pointsInTalent(Talent.CONCUSSIVE_SHOTS);
-				if (Random.Int(100) < 15 * pts) {
-					Buff.affect(enemy, Cripple.class, 3f * pts);
-				}
-			}
-
-			// Incendiary Ammo
-			if (hero.hasTalent(Talent.INCENDIARY_AMMO)) {
-				int pts = hero.pointsInTalent(Talent.INCENDIARY_AMMO);
-				Buff.affect(enemy, Burning.class).reignite(enemy);
-				enemy.damage(Random.IntRange(1, pts * 3), Gun.this);
-			}
-
-			// Cryo Ammo
-			if (hero.hasTalent(Talent.CRYO_AMMO)) {
-				int pts = hero.pointsInTalent(Talent.CRYO_AMMO);
-				Buff.prolong(enemy, Chill.class, 3f * pts);
-				if (pts >= 3 && Random.Int(100) < 30) {
-					Buff.affect(enemy, Frost.class, 2f);
-				}
-			}
-
-			// Shock Rounds: arcs lightning to nearby enemies
-			if (hero.hasTalent(Talent.SHOCK_ROUNDS)) {
-				int pts = hero.pointsInTalent(Talent.SHOCK_ROUNDS);
-				for (int n : PathFinder.NEIGHBOURS8) {
-					int adj = cell + n;
-					Char other = Actor.findChar(adj);
-					if (other != null && other != enemy && other != hero && other.isAlive()) {
-						int arcDmg = Math.round(Gun.this.damageRoll(hero) * (0.25f * pts));
-						other.damage(arcDmg, Gun.this);
-						CellEmitter.center(adj).burst(SparkParticle.FACTORY, 4);
-					}
-				}
-			}
-
-			// Sharpshooter Piercing Rounds
-			if (hero.hasTalent(Talent.PIERCING_ROUNDS)) {
-				int pts = hero.pointsInTalent(Talent.PIERCING_ROUNDS);
-				int dir = cell - hero.pos;
-				// check line behind enemy
-				Ballistica trace = new Ballistica(hero.pos, cell, Ballistica.STOP_SOLID);
-				int nextCell = cell + (cell - hero.pos > 0 ? 1 : -1);
-				if (trace.path.size() > 0) {
-					int idx = trace.path.indexOf(cell);
-					if (idx != -1 && idx + 1 < trace.path.size()) {
-						int behindCell = trace.path.get(idx + 1);
-						Char behindChar = Actor.findChar(behindCell);
-						if (behindChar != null && behindChar != hero && behindChar.isAlive()) {
-							behindChar.damage(Math.round(Gun.this.damageRoll(hero) * (0.35f * pts)), Gun.this);
-							CellEmitter.center(behindCell).burst(SparkParticle.FACTORY, 4);
-						}
-					}
-				}
-			}
-		}
-
-		@Override
-		public void cast(Hero user, int dst) {
-			targetPos = throwPos(user, dst);
-			// Set missile sprite according to active ammo talent
-			if (user.hasTalent(Talent.INCENDIARY_AMMO)) {
-				image = ItemSpriteSheet.INCENDIARY_DART;
-			} else if (user.hasTalent(Talent.CRYO_AMMO)) {
-				image = ItemSpriteSheet.CHILLING_DART;
-			} else if (user.hasTalent(Talent.SHOCK_ROUNDS)) {
-				image = ItemSpriteSheet.SHOCKING_DART;
-			} else {
-				image = ItemSpriteSheet.DART;
-			}
-
-			super.cast(user, dst);
-		}
-	}
-
 	private CellSelector.Listener shooter = new CellSelector.Listener() {
 		@Override
 		public void onSelect(Integer target) {
-			if (target != null) {
-				knockBullet().cast(curUser, target);
+			if (target != null && curUser != null) {
+				Ballistica shot = new Ballistica(curUser.pos, target, Ballistica.PROJECTILE);
+				int hitCell = shot.collisionPos;
+				Char enemy = Actor.findChar(hitCell);
+
+				// Visual & Audio hitscan effects
+				CellEmitter.center(curUser.pos).burst(SparkParticle.FACTORY, 4);
+				CellEmitter.center(curUser.pos).burst(SmokeParticle.FACTORY, 2);
+				Sample.INSTANCE.play(Assets.Sounds.BLAST, 1f, Random.Float(0.95f, 1.05f));
+
+				if (enemy != null && enemy != curUser) {
+					curUser.attack(enemy);
+					curUser.spendAndNext(delayFactor(curUser));
+				} else {
+					CellEmitter.center(hitCell).burst(SparkParticle.FACTORY, 4);
+					CellEmitter.center(hitCell).burst(SmokeParticle.FACTORY, 2);
+					Dungeon.level.pressCell(hitCell);
+					curUser.spendAndNext(delayFactor(curUser));
+				}
 			}
 		}
 

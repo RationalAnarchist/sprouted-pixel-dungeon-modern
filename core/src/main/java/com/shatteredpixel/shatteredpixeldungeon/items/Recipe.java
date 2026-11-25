@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.BackpackExpander;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
+import com.shatteredpixel.shatteredpixeldungeon.items.gadgets.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.BreachingPowder;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Blandfruit;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.MeatPie;
@@ -199,10 +200,21 @@ public abstract class Recipe {
 		new TrinketCatalyst.RecycleRecipe(),
 		new Trinket.UpgradeTrinket(),
 		new BreachingPowder.Recipe(),
-		new BackpackExpander.Recipe()
+		new BackpackExpander.Recipe(),
+		new SappersSensor.Recipe(),
+		new TacticalMonocle.Recipe(),
+		new ClockworkDecoy.Recipe(),
+		new AdrenalineStim.Recipe(),
+		new OverchargeIgniter.Recipe(),
+		new PurifiersCore.Recipe(),
+		new MaliceOverclocker.Recipe(),
+		new BiometricResonator.Recipe(),
+		new MuscleExoRig.Recipe(),
+		new PhosphorFlashPack.Recipe()
 	};
 	
 	private static Recipe[] twoIngredientRecipes = new Recipe[]{
+		new GadgetUpgradeRecipe(),
 		new Blandfruit.CookFruit(),
 		new Bomb.EnhanceBomb(),
 		new UnstableBrew.Recipe(),

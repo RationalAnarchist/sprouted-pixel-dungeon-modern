@@ -57,6 +57,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScrol
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.Alchemize;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.BeaconOfReturning;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.BreachingPowder;
+import com.shatteredpixel.shatteredpixeldungeon.items.gadgets.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.CurseInfusion;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.MagicalInfusion;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.PhaseShift;
@@ -404,6 +405,17 @@ public class QuickRecipe extends Component {
 				result.add(null);
 				result.add(new QuickRecipe(new BackpackExpander.Recipe()));
 				result.add(new QuickRecipe(new BreachingPowder.Recipe()));
+				result.add(null);
+				result.add(new QuickRecipe(new SappersSensor.Recipe()));
+				result.add(new QuickRecipe(new TacticalMonocle.Recipe()));
+				result.add(new QuickRecipe(new ClockworkDecoy.Recipe()));
+				result.add(new QuickRecipe(new AdrenalineStim.Recipe()));
+				result.add(new QuickRecipe(new OverchargeIgniter.Recipe()));
+				result.add(new QuickRecipe(new PurifiersCore.Recipe()));
+				result.add(new QuickRecipe(new MaliceOverclocker.Recipe()));
+				result.add(new QuickRecipe(new BiometricResonator.Recipe()));
+				result.add(new QuickRecipe(new MuscleExoRig.Recipe()));
+				result.add(new QuickRecipe(new PhosphorFlashPack.Recipe()));
 				return result;
 		}
 	}

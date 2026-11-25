@@ -177,8 +177,7 @@ public abstract class Scroll extends Item {
 
 		if (action.equals( AC_READ )) {
 			
-			if (hero.buff(MagicImmune.class) != null
-					|| (hero.heroClass == HeroClass.GUNMAN && !(this instanceof ScrollOfUpgrade || this instanceof ScrollOfRemoveCurse))){
+			if (hero.buff(MagicImmune.class) != null || hero.heroClass == HeroClass.GUNMAN){
 				GLog.w( Messages.get(this, "no_magic") );
 			} else if (hero.buff( Blindness.class ) != null) {
 				GLog.w( Messages.get(this, "blinded") );

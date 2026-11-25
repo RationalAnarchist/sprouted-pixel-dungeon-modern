@@ -154,6 +154,15 @@ public class EtherealChains extends Artifact {
 	//pulls an enemy to a position along the chain's path, as close to the hero as possible
 	private void chainEnemy( Ballistica chain, final Hero hero, final Char enemy ){
 		
+		if (hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.GUNMAN || hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune.class) != null) {
+			for (int p : chain.subPath(1, chain.dist - 1)) {
+				if (Dungeon.level.solid[p]) {
+					GLog.w(Messages.get(this, "blocked_by_wall"));
+					return;
+				}
+			}
+		}
+
 		if (enemy.properties().contains(Char.Property.IMMOVABLE)) {
 			GLog.w( Messages.get(this, "cant_pull") );
 			return;
@@ -221,6 +230,15 @@ public class EtherealChains extends Artifact {
 			PixelScene.shake( 1, 1f );
 			GLog.w( Messages.get(EtherealChains.class, "rooted") );
 			return;
+		}
+
+		if (hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.GUNMAN || hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune.class) != null) {
+			for (int p : chain.subPath(1, chain.dist - 1)) {
+				if (Dungeon.level.solid[p]) {
+					GLog.w(Messages.get(this, "blocked_by_wall"));
+					return;
+				}
+			}
 		}
 
 		//don't pull if the collision spot is in a wall

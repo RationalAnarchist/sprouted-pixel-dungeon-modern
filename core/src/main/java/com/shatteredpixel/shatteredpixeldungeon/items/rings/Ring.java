@@ -124,6 +124,15 @@ public class Ring extends KindofMisc {
 		}
 	}
 	
+	@Override
+	public boolean doEquip(Hero hero) {
+		if (hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.GUNMAN || hero.buff(MagicImmune.class) != null) {
+			GLog.w(Messages.get(Ring.class, "no_magic"));
+			return false;
+		}
+		return super.doEquip(hero);
+	}
+
 	public void activate( Char ch ) {
 		if (buff != null){
 			buff.detach();

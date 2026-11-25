@@ -403,6 +403,8 @@ public abstract class Char extends Actor {
 				}
 			}
 
+			dr = Math.max(0, dr - com.shatteredpixel.shatteredpixeldungeon.items.gadgets.TacticalMonocle.armorPenetration(this));
+
 			//we use a float here briefly so that we don't have to constantly round while
 			// potentially applying various multiplier effects
 			float dmg;
@@ -437,6 +439,13 @@ public abstract class Char extends Actor {
 			if (buff( Fury.class ) != null) {
 				dmg *= 1.5f;
 			}
+
+			if (com.shatteredpixel.shatteredpixeldungeon.items.gadgets.TacticalMonocle.checkCrit(this, enemy)) {
+				dmg *= 1.5f;
+				com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.center(enemy.pos).burst(com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle.FACTORY, 5);
+			}
+
+			dmg *= com.shatteredpixel.shatteredpixeldungeon.items.gadgets.PurifiersCore.damageBonus(this, enemy);
 
 			if (buff( PowerOfMany.PowerBuff.class) != null){
 				if (buff( BeamingRay.BeamingRayBoost.class) != null

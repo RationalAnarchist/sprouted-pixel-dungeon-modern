@@ -874,6 +874,18 @@ public class Generator {
 			return null;
 		}
 
+		if (Dungeon.hero != null && Dungeon.hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.GUNMAN) {
+			try {
+				Artifact art = (Artifact) Reflection.newInstance((Class<? extends Artifact>) cat.classes[i]);
+				if (!art.isAllowedForGunman()) {
+					int retry = Random.chances( cat.probs );
+					if (retry != -1) {
+						i = retry;
+					}
+				}
+			} catch (Exception ignored) {}
+		}
+
 		cat.probs[i]--;
 		return (Artifact) Reflection.newInstance((Class<? extends Artifact>) cat.classes[i]).random();
 

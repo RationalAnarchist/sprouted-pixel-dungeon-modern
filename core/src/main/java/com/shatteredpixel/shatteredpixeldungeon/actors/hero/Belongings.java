@@ -85,7 +85,7 @@ public class Belongings implements Iterable<Item> {
 	public Armor armor = null;
 	public Artifact artifact = null;
 	public KindofMisc misc = null;
-	public Ring ring = null;
+	public KindofMisc ring = null;
 
 	//used when thrown weapons temporary become the current weapon
 	public KindOfWeapon thrownWeapon = null;
@@ -151,7 +151,7 @@ public class Belongings implements Iterable<Item> {
 
 	public Ring ring(){
 		if (!lostInventory() || (ring != null && ring.keptThroughLostInventory())){
-			return ring;
+			return (ring instanceof Ring) ? (Ring)ring : null;
 		} else {
 			return null;
 		}
@@ -207,8 +207,8 @@ public class Belongings implements Iterable<Item> {
 		misc = (KindofMisc) bundle.get(MISC);
 		if (misc() != null)         misc().activate( owner );
 
-		ring = (Ring) bundle.get(RING);
-		if (ring() != null)         ring().activate( owner );
+		ring = (KindofMisc) bundle.get(RING);
+		if (ring != null && (!lostInventory() || ring.keptThroughLostInventory())) ring.activate( owner );
 
 		secondWep = (KindOfWeapon) bundle.get(SECOND_WEP);
 		extraBagCapacity = bundle.getInt(EXTRA_CAPACITY);

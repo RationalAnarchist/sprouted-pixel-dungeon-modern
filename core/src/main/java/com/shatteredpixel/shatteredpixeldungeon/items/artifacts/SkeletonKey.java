@@ -331,6 +331,11 @@ public class SkeletonKey extends Artifact {
 					}
 				}
 
+				if (curUser instanceof Hero && (((Hero)curUser).heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass.GUNMAN || curUser.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune.class) != null)){
+					GLog.w(Messages.get(SkeletonKey.class, "no_spectral_walls"));
+					return;
+				}
+
 				if (charge < 2){
 					GLog.i(Messages.get(SkeletonKey.class, "wall_charges"));
 					return;
